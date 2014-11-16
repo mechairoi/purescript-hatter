@@ -28,7 +28,7 @@ toCode (StringLitE name) = joinWith "" [ "\""
 toCode (ArrayLitE exps) =
    "[" ++ joinWith ", " (Data.Array.map toCode exps) ++ "]"
 
-toCode (RawE rawCode) = joinWith " " [ "(", rawCode, ")"]
+toCode (RawE rawCode) = joinWith " " [ "(", rawCode, "\n  )"]
 
 escapeString :: String -> String
 escapeString str = replace "\a" "\\a"  $
