@@ -4,13 +4,8 @@ module Text.Hatter.PureScript
        , Name()
        ) where
 
-import Data.String (joinWith)
+import Data.String (joinWith, replace)
 import Data.Array
-
-
--- class Pat a
--- class Dec a
--- class Type a
 
 type Name = String
 
@@ -36,14 +31,13 @@ toCode (ArrayLitE exps) =
 toCode (RawE rawCode) = joinWith " " [ "(", rawCode, ")"]
 
 escapeString :: String -> String
-escapeString str = str -- XXX implement
-
--- newtype ConP = ConP Name [Pat]
--- instance conPat (Pat ConP)
--- wildP = PatL "_"
-
--- newtype LamE = LamdaL [Pat] Exp
--- instance lamExp (Exp LamE)
-
--- newtype FunD = FunD
--- newtype DataD = DataD
+escapeString str = replace "\a" "\\a"  $
+                   replace "\b" "\\b"  $
+                   replace "\f" "\\f"  $
+                   replace "\n" "\\n"  $
+                   replace "\t" "\\t"  $
+                   replace "\r" "\\r"  $
+                   replace "\v" "\\v"  $
+                   replace "\"" "\\\"" $
+                   replace "\'" "\\\'" $
+                   replace "\\" "\\\\" str
