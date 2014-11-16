@@ -10,6 +10,7 @@ var gulp        = require('gulp')
 
 var paths = {
   src: 'src/**/*.purs',
+  binSrc: 'Index.purs',
   bowerSrc: [
     'bower_components/purescript-*/src/**/*.purs',
     'bower_components/purescript-*/src/**/*.purs.hs'
@@ -32,6 +33,10 @@ var options = {
   test: {
     main: 'Test',
     output: 'test/test.js'
+  },
+  pack: {
+    main: 'Text.Hatter.Index',
+    output: 'hatter.js'
   }
 };
 
@@ -66,8 +71,8 @@ function sequence () {
   };
 }
 
-gulp.task('browser', function() {
-  return compile(purescript.psc, [paths.src].concat(paths.bowerSrc), {});
+gulp.task('pack', function() {
+  return compile(purescript.psc, [paths.src, paths.binSrc].concat(paths.bowerSrc), options.pack);
 });
 
 gulp.task('make', function() {
@@ -79,21 +84,10 @@ gulp.task('test', function() {
     .pipe(run('node').exec());
 });
 
-// gulp.task('browserify', ['test'], function() {
-//   return browserify('./test/test.js')
-//     .bundle()
-//     .pipe(source('main.js'))
-//     .pipe(gulp.dest('./test/'));
-// });
-// 
 gulp.task('docs-Text.Hatter', docs('Text.Hatter'));
 gulp.task('docs-Text.Hatter.*', docs('Text.Hatter.*'));
 
 gulp.task('docs', ['docs-Text.Hatter', 'docs-Text.Hatter.*']);
-
-gulp.task('watch-browser', function() {
-  gulp.watch(paths.src, sequence('browser', 'docs'));
-});
 
 gulp.task('watch-make', function() {
   gulp.watch(paths.src, sequence('make', 'docs'));
