@@ -27,7 +27,6 @@
     "purescript-arrays": "~0.2.1"
   },
   "devDependencies": {
-    "purescript-virtual-dom-typed": "*",
     "purescript-quickcheck": "~0.3.0"
   }
 }
