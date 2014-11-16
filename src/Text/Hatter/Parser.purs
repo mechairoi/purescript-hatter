@@ -277,6 +277,5 @@ stringi s = ParserT $ \s' ->
     s'' | s'' == toLower s -> { consumed: true, input: drop (length s) s', result: Right s }
     _ -> { consumed: false, input: s', result: Left (strMsg ("Expected " ++ show s)) }
 
--- TODO: implement charactor reference
 unescapeHtml :: String -> String
 unescapeHtml html = replace "&amp;" "&" $ replace "&lt;" "<" $ replace "&gt;" ">" html
