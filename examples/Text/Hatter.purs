@@ -23,7 +23,7 @@ render x y =
 
 testAll :: QC Unit
 testAll = do
-  assert $ isRight $ hatter input "Test.Text.Hatter.Case1"
+  assert $ isRight $ hatter "Test.Text.Hatter.Case1" [] input
 
 assert :: Boolean -> QC Unit
 assert = quickCheck' 1
