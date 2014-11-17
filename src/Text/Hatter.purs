@@ -14,7 +14,7 @@ hatter moduleName imports input = do
   return $ joinWith "" ( [ "module "
                          , moduleName
                          , " where \n" ] ++
-                         (Data.Array.map (\i -> "import " ++ i) is) ++
+                         (Data.Array.map (\i -> "import " ++ i ++ "\n") is) ++
                          [ doc.typeAnnotation
                          , "\n"
                          , doc.args
