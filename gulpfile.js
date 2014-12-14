@@ -1,96 +1,79 @@
 'use strict';
 
 var gulp        = require('gulp')
+  , gutil       = require('gulp-util')
   , purescript  = require('gulp-purescript')
   , run         = require('gulp-run')
-  , runSequence = require('run-sequence')
-  , source      = require('vinyl-source-stream')
-  , browserify  = require('browserify')
+  , path        = require("path")
   ;
 
 var paths = {
   src: 'src/**/*.purs',
-  binSrc: 'Index.purs',
-  bowerSrc: [
-    'bower_components/purescript-*/src/**/*.purs',
-    'bower_components/purescript-*/src/**/*.purs.hs'
-  ],
-  dest: '',
-  docs: {
-    'Text.Hatter': {
-      dest: 'src/Text/README.md',
-      src: 'src/Text/Hatter.purs'
-    },
-    'Text.Hatter.*': {
-      dest: 'src/Text/Hatter/README.md',
-      src: 'src/Text/Hatter/*.purs'
-    }
-  },
-  test: 'examples/**/*.purs'
+  bin: 'Index.purs',
+  doc: 'MODULE.md',
+  bowerSrc: 'bower_components/purescript-*/src/**/*.purs',
+  dest: 'output',
+  test: 'Test/**/*.purs'
 };
 
 var options = {
-  test: {
-    main: 'Test',
-    output: 'test/test.js'
-  },
-  pack: {
-    main: 'Text.Hatter.Index',
-    output: 'hatter.js'
+  bin: {
+    main: 'Index',
+    output: 'index.js'
   }
 };
 
-function compile (compiler, src, opts) {
-  var psc = compiler(opts);
-  psc.on('error', function(e) {
-    console.error(e.message);
-    psc.end();
-  });
-  return gulp.src(src.concat(paths.bowerSrc))
-    .pipe(psc)
-    .pipe(gulp.dest(paths.dest));
-};
+(function() {
+  var nodePath = process.env.NODE_PATH;
+  var buildPath = path.resolve(paths.dest);
+  process.env["NODE_PATH"] = nodePath ? (buildPath + ":" + nodePath) : buildPath;
+})();
 
-function docs (target) {
-  return function() {
-    var docgen = purescript.pscDocs();
-    docgen.on('error', function(e) {
-      console.error(e.message);
-      docgen.end();
-    });
-    return gulp.src(paths.docs[target].src)
-      .pipe(docgen)
-      .pipe(gulp.dest(paths.docs[target].dest));
+function stringSrc(filename, contents) {
+  var src = require('stream').Readable({ objectMode: true });
+  src._read = function () {
+    this.push(new gutil.File({ cwd: "", base: "", path: filename, contents: new Buffer(contents) }));
+    this.push(null);
   };
+  return src;
 }
-
-function sequence () {
-  var args = [].slice.apply(arguments);
-  return function() {
-    runSequence.apply(null, args);
-  };
-}
-
-gulp.task('pack', function() {
-  return compile(purescript.psc, [paths.src, paths.binSrc].concat(paths.bowerSrc), options.pack);
-});
 
 gulp.task('make', function() {
-  return compile(purescript.pscMake, [paths.src].concat(paths.bowerSrc), {});
+  return gulp.src([paths.src].concat(paths.bowerSrc))
+    .pipe(purescript.pscMake({}))
+    .pipe(gulp.dest(paths.dest));
 });
 
-gulp.task('test', function() {
-  return compile(purescript.psc, [paths.src, paths.test].concat(paths.bowerSrc), options.test)
+gulp.task('test-make', function() {
+  return gulp.src([paths.src, paths.test].concat(paths.bowerSrc))
+    .pipe(purescript.pscMake({}))
+    .pipe(gulp.dest(paths.dest));
+});
+
+gulp.task('test', ['test-make'], function() {
+  return stringSrc("test/test.js", "require('Test').main()")
     .pipe(run('node').exec());
 });
 
-gulp.task('docs-Text.Hatter', docs('Text.Hatter'));
-gulp.task('docs-Text.Hatter.*', docs('Text.Hatter.*'));
-
-gulp.task('docs', ['docs-Text.Hatter', 'docs-Text.Hatter.*']);
-
-gulp.task('watch-make', function() {
-  gulp.watch(paths.src, sequence('make', 'docs'));
+gulp.task('bin', function() {
+  return gulp.src([paths.src, paths.bin].concat(paths.bowerSrc))
+    .pipe(purescript.psc(options.bin))
+    .pipe(gulp.dest(paths.dest));
 });
 
-gulp.task('default', sequence('make', 'docs'));
+gulp.task('docs', function() {
+  return gulp.src(paths.src)
+    .pipe(purescript.pscDocs())
+    .pipe(gulp.dest(paths.doc));
+});
+
+gulp.task('psci', function() {
+  return gulp.src([paths.src, paths.test].concat(paths.bowerSrc))
+    .pipe(purescript.dotPsci());
+});
+
+gulp.task('watch', function() {
+  gulp.watch(paths.src, ['make', 'docs']);
+});
+
+gulp.task('default', ['make', 'docs']);

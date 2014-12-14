@@ -1,4 +1,4 @@
-module Text.Hatter.Index where
+module Index where
 import Text.Hatter (hatter)
 import Control.Monad.Eff
 

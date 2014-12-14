@@ -2,16 +2,14 @@
   "name": "purescript-hatter",
   "version": "0.0.1",
   "description": "A template engine for Purescript and virtual-dom",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
-    "browserify": "^6.2.0",
     "gulp": "^3.8.10",
-    "gulp-purescript": "^0.1.1",
+    "gulp-purescript": "^0.1.2",
     "gulp-run": "https://registry.npmjs.org/gulp-run/-/gulp-run-1.6.4.tgz",
+    "gulp-util": "^3.0.1",
     "run-sequence": "^1.0.1",
-    "vinyl-source-stream": "^1.0.0",
-    "virtual-dom": "*",
+    "virtual-dom": "0.0.23",
     "vtree": "*"
   }
 }

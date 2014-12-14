@@ -1,22 +1,10 @@
 # Module Documentation
 
-## Module Text.Hatter.Coerce
+## Module Text.Hatter
 
-### Type Classes
+### Values
 
-    class Coerce a b where
-      coerce :: a -> b
-
-
-### Type Class Instances
-
-    instance attributesCoerce :: (Attribute a) => Coerce a [a]
-
-    instance idCoerce :: Coerce a a
-
-    instance nodesCoerce :: Coerce VTree [VTree]
-
-    instance stringNodeCoerce :: Coerce String VTree
+    hatter :: String -> [String] -> String -> Either ParseError String
 
 
 ## Module Text.Hatter.Parser
@@ -92,11 +80,7 @@
 
 ### Values
 
-    translateAttribute :: Attribute -> Exp
-
-    translateHString :: HString -> Exp
-
-    translateHStrings :: [HString] -> Exp
+    requireModules :: [String]
 
     translateNode :: Node -> Exp
 
