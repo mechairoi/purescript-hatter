@@ -5,3 +5,4 @@
 /hatter.js
 /tmp
 /.psci
+/test/integration/fixture/**/*.purs

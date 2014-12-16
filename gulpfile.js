@@ -5,6 +5,7 @@ var gulp        = require('gulp')
   , purescript  = require('gulp-purescript')
   , run         = require('gulp-run')
   , path        = require("path")
+  , through     = require('through2')
   ;
 
 var paths = {
@@ -12,8 +13,11 @@ var paths = {
   bin: 'Index.purs',
   doc: 'MODULE.md',
   bowerSrc: 'bower_components/purescript-*/src/**/*.purs',
-  dest: 'output',
-  test: 'Test/**/*.purs'
+  dest: 'output/node_modules',
+  unitTest: 'test/unit/**/*.purs',
+  integrationTest: 'test/integration/**/*.purs',
+  fixture: 'test/integration/fixture/**/*.hat',
+  fixtureDest: 'test/integration/fixture'
 };
 
 var options = {
@@ -40,18 +44,32 @@ function stringSrc(filename, contents) {
 
 gulp.task('make', function() {
   return gulp.src([paths.src].concat(paths.bowerSrc))
-    .pipe(purescript.pscMake({}))
-    .pipe(gulp.dest(paths.dest));
+    .pipe(purescript.pscMake({output: paths.dest}));
 });
 
-gulp.task('test-make', function() {
-  return gulp.src([paths.src, paths.test].concat(paths.bowerSrc))
-    .pipe(purescript.pscMake({}))
-    .pipe(gulp.dest(paths.dest));
+gulp.task('unit-test-make', function() {
+  return gulp.src([paths.src, paths.unitTest].concat(paths.bowerSrc))
+    .pipe(purescript.pscMake({output: paths.dest}));
 });
 
-gulp.task('test', ['test-make'], function() {
-  return stringSrc("test/test.js", "require('Test').main()")
+gulp.task('unit-test', ['unit-test-make'], function() {
+  return stringSrc("test/unit-test.js", "require('UnitTest').main()")
+    .pipe(run('node').exec());
+});
+
+gulp.task('integration-test-precompile', ['make'], function() {
+  return gulp.src(paths.fixture)
+    .pipe(hatter({imports: ["Text.Hatter.Runtime"]}))
+    .pipe(gulp.dest(paths.fixtureDest));
+});
+
+gulp.task('integration-test-make', ['integration-test-precompile'], function() {
+  return gulp.src([paths.src, paths.integrationTest].concat(paths.bowerSrc))
+    .pipe(purescript.pscMake({output: paths.dest}));
+});
+
+gulp.task('integration-test', ['integration-test-make'], function() {
+  return stringSrc("test/integration-test.js", "require('Test.Integration').main()")
     .pipe(run('node').exec());
 });
 
@@ -68,7 +86,7 @@ gulp.task('docs', function() {
 });
 
 gulp.task('psci', function() {
-  return gulp.src([paths.src, paths.test].concat(paths.bowerSrc))
+  return gulp.src([paths.src, paths.unitTest].concat(paths.bowerSrc))
     .pipe(purescript.dotPsci());
 });
 
@@ -77,3 +95,39 @@ gulp.task('watch', function() {
 });
 
 gulp.task('default', ['make', 'docs']);
+
+function hatter(opts) {
+  module.paths.push(paths.dest);
+  return through.obj(function(file, enc, cb) {
+    var PluginError = gutil.PluginError;
+    var PLUGIN_NAME = 'gulp-purescript-hatter';
+
+    if (file.isNull()) {
+      return cb(null, file);
+    }
+
+    if (file.isStream()) {
+      return cb(new PluginError(PLUGIN_NAME, 'Streaming not supported', {
+        fileName: file.path,
+        showStack: false
+      }));
+    }
+
+    try {
+      file.path = gutil.replaceExtension(file.path, ".purs");
+      var moduleName =
+        gutil.replaceExtension(file.relative, "").split(path.sep).join(".");
+      file.contents = new Buffer(
+        require('Text.Hatter').hatter(moduleName)(opts.imports || [])(String(file.contents)).value0
+      );
+    } catch (e) {
+      return cb(new PluginError(PLUGIN_NAME, e.message || e.msg, {
+        fileName: file.path,
+        lineNumber: e.line,
+        stack: e.stack,
+        showStack: false
+      }));
+    }
+    return cb(null, file);
+  });
+};

@@ -1,4 +1,4 @@
-module Test.Text.Hatter where
+module UnitTest.Text.Hatter where
 
 import Test.QuickCheck
 import Text.Hatter.Parser

@@ -10,7 +10,9 @@ import Data.Either
 import Data.Foreign
 
 requireModules :: [String]
-requireModules = [ "VirtualDOM.VTree ()", "VirtualDOM.Typed ()", "Data.String ()" ]
+requireModules = [ "VirtualDOM.VTree ()"
+                 , "VirtualDOM.Typed ()"
+                 , "Data.String ()" ]
 
 translateNode :: Node -> Exp
 translateNode (ElementNode tag attrs children) =

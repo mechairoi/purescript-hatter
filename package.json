@@ -9,6 +9,7 @@
     "gulp-run": "https://registry.npmjs.org/gulp-run/-/gulp-run-1.6.4.tgz",
     "gulp-util": "^3.0.1",
     "run-sequence": "^1.0.1",
+    "through2": "^0.6.3",
     "virtual-dom": "0.0.23",
     "vtree": "*"
   }

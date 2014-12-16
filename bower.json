@@ -27,6 +27,7 @@
     "purescript-arrays": "~0.2.1"
   },
   "devDependencies": {
-    "purescript-quickcheck": "~0.3.0"
+    "purescript-quickcheck": "~0.3.0",
+    "purescript-hatter-runtime": "mechairoi/purescript-hatter-runtime"
   }
 }
