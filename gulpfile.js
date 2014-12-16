@@ -58,8 +58,9 @@ gulp.task('unit-test', ['unit-test-make'], function() {
 });
 
 gulp.task('integration-test-precompile', ['make'], function() {
+  // XXX only if modified
   return gulp.src(paths.fixture)
-    .pipe(hatter({imports: ["Text.Hatter.Runtime"]}))
+    .pipe(hatter({imports: ["Text.Hatter.Runtime.Instances"]}))
     .pipe(gulp.dest(paths.fixtureDest));
 });
 

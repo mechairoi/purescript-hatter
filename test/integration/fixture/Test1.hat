@@ -1,4 +1,4 @@
-render :: String -> String -> VirtualDOM.VTree.VTree
+render :: forall props. String -> { z:: String, y:: String | props } -> VirtualDOM.VTree.VTree
 render x y =
 <div>
   <span><% x %> foo</span>

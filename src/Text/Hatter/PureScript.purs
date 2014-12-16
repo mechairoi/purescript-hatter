@@ -13,6 +13,7 @@ data Exp = VarE Name
          | AppE Exp Exp
          | StringLitE String | ArrayLitE [Exp]
          | RawE String
+         | SigE Exp Name
 
 toCode :: Exp -> String
 toCode (VarE name) = name
@@ -28,7 +29,17 @@ toCode (StringLitE name) = joinWith "" [ "\""
 toCode (ArrayLitE exps) =
    "[" ++ joinWith ", " (Data.Array.map toCode exps) ++ "]"
 
-toCode (RawE rawCode) = joinWith " " [ "(", rawCode, "\n  )"]
+toCode (RawE rawCode) = joinWith " " [ "(Text.Hatter.Runtime.coerce"
+                                     , "("
+                                     , rawCode
+                                     , "\n  )"
+                                     , ")" ]
+
+toCode (SigE exp signature) = joinWith " " [ "("
+                                           , toCode exp
+                                           , "::"
+                                           , signature
+                                           , ")" ]
 
 escapeString :: String -> String
 escapeString str = replace "\a" "\\a"  $

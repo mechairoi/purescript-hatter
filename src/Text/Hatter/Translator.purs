@@ -12,15 +12,22 @@ import Data.Foreign
 requireModules :: [String]
 requireModules = [ "VirtualDOM.VTree ()"
                  , "VirtualDOM.Typed ()"
+                 , "Text.Hatter.Runtime ()"
                  , "Data.String ()" ]
 
 translateNode :: Node -> Exp
 translateNode (ElementNode tag attrs children) =
   (AppE
    (AppE
-    (AppE (VarE "VirtualDOM.Typed.node") (StringLitE tag))
-    (ArrayLitE $ Data.Array.map translateAttribute attrs))
-   (ArrayLitE $ Data.Array.map translateNode children))
+    (AppE
+     (AppE
+      (AppE (VarE "VirtualDOM.Typed.node") (StringLitE tag))
+      (SigE
+       (ArrayLitE $ Data.Array.map translateAttribute attrs)
+       "VirtualDOM.Typed.Attribute"))
+     (ArrayLitE $ Data.Array.map translateNode children))
+    (VarE "Data.Maybe.Nothing"))
+   (VarE "Data.Maybe.Nothing"))
 
 translateNode (TextNode s) = AppE (VarE "VirtualDOM.VTree.vtext") $ StringLitE s
 
@@ -38,8 +45,10 @@ translateAttribute (Attr name value) =
 
 translateAttribute (Toggle name) =
   (AppE
-   (VarE "VirtualDOM.Typed.toggle")
-   (translateHStrings name))
+   (AppE
+    (VarE "VirtualDOM.Typed.toggle")
+    (translateHStrings name))
+   (VarE "true"))
 
 translateAttribute (AttributesExp (HExp e)) = RawE e
 
