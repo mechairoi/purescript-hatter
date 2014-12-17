@@ -11,9 +11,8 @@ foreign import consoleLog "function consoleLog(x) { console.log(JSON.stringify(x
 
 testAll :: QC Unit
 testAll = do
-  let x = consoleLog (Test1.render "hoge" "fuga")
-  assert false
-  -- assert $ isRight $ hatter "Test.Text.Hatter.Case1" [] input
+  let x = consoleLog (Test1.render "String(x)" { z: "String(y.z)", y: "String(y.y)"} )
+  assert true
 
 assert :: Boolean -> QC Unit
 assert = quickCheck' 1

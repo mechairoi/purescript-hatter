@@ -29,11 +29,9 @@ toCode (StringLitE name) = joinWith "" [ "\""
 toCode (ArrayLitE exps) =
    "[" ++ joinWith ", " (Data.Array.map toCode exps) ++ "]"
 
-toCode (RawE rawCode) = joinWith " " [ "(Text.Hatter.Runtime.coerce"
-                                     , "("
+toCode (RawE rawCode) = joinWith " " [ "("
                                      , rawCode
-                                     , "\n  )"
-                                     , ")" ]
+                                     , "\n  )" ]
 
 toCode (SigE exp signature) = joinWith " " [ "("
                                            , toCode exp

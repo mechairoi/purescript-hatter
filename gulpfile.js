@@ -70,7 +70,7 @@ gulp.task('integration-test-make', ['integration-test-precompile'], function() {
 });
 
 gulp.task('integration-test', ['integration-test-make'], function() {
-  return stringSrc("test/integration-test.js", "require('Test.Integration').main()")
+  return stringSrc("test/integration-test.js", "require('IntegrationTest').main()")
     .pipe(run('node').exec());
 });
 
