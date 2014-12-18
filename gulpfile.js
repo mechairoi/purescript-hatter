@@ -74,6 +74,8 @@ gulp.task('integration-test', ['integration-test-make'], function() {
     .pipe(run('node').exec());
 });
 
+gulp.task('test', ['unit-test', 'integration-test']);
+
 gulp.task('bin', function() {
   return gulp.src([paths.src, paths.bin].concat(paths.bowerSrc))
     .pipe(purescript.psc(options.bin))
