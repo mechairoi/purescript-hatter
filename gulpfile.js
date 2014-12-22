@@ -118,10 +118,8 @@ function hatter(opts) {
 
     try {
       file.path = gutil.replaceExtension(file.path, ".purs");
-      var moduleName =
-        gutil.replaceExtension(file.relative, "").split(path.sep).join(".");
       file.contents = new Buffer(
-        require('Text.Hatter').hatter(moduleName)(opts.imports || [])(String(file.contents)).value0
+        require('Text.Hatter').hatter(opts.imports || [])(String(file.contents)).value0
       );
     } catch (e) {
       return cb(new PluginError(PLUGIN_NAME, e.message || e.msg, {

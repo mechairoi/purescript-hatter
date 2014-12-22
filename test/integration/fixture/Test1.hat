@@ -1,10 +1,22 @@
+module Test1 where
+
 render :: forall props. String -> { z:: String, y:: String | props } -> VirtualDOM.VTree.VTree
 render x y =
-<div>
-  <span><% x %> foo</span>
-  <% y.z %>
-  &amp;&gt;&lt;
-  <textarea><script></script></textarea>
-  <hr>
-  <input type="hidden" name=bar value='ba<% y.y %>z' />
-</div>
+  <div>
+    <span><% x %> foo</span>
+    <% y.z %>
+    &amp;&gt;&lt;
+    <textarea><script></script></textarea>
+    <hr>
+    <input type="hidden" name=bar value='ba<% y.y %>z' />
+  </div>
+
+render2 :: String -> VirtualDOM.VTree.VTree
+render2 x =
+  <pre>1. First line
+2. Second line
+</pre>
+
+render3 :: String -> VirtualDOM.VTree.VTree
+render3 x =
+  <div><% x %></div>

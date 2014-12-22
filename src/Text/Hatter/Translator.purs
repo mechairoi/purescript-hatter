@@ -1,6 +1,5 @@
 module Text.Hatter.Translator
-       ( translateNode
-       , requireModules )where
+       ( translateNode )where
 
 import Text.Hatter.Parser
 import Text.Hatter.PureScript
@@ -8,12 +7,6 @@ import Data.String (joinWith)
 import Data.Either
 
 import Data.Foreign
-
-requireModules :: [String]
-requireModules = [ "VirtualDOM.VTree ()"
-                 , "VirtualDOM.VTree.Typed ()"
-                 , "Text.Hatter.Runtime ()"
-                 , "Data.String ()" ]
 
 translateNode :: Node -> Exp
 translateNode (ElementNode tag attrs children) =

@@ -4,8 +4,9 @@ module Text.Hatter.PureScript
        , Name()
        ) where
 
-import Data.String (joinWith, replace)
+import Data.String (joinWith)
 import Data.Array
+import Data.String.Regex
 
 type Name = String
 
@@ -40,13 +41,14 @@ toCode (SigE exp signature) = joinWith " " [ "("
                                            , ")" ]
 
 escapeString :: String -> String
-escapeString str = replace "\a" "\\a"  $
-                   replace "\b" "\\b"  $
-                   replace "\f" "\\f"  $
-                   replace "\n" "\\n"  $
-                   replace "\t" "\\t"  $
-                   replace "\r" "\\r"  $
-                   replace "\v" "\\v"  $
-                   replace "\"" "\\\"" $
-                   replace "\'" "\\\'" $
-                   replace "\\" "\\\\" str
+escapeString str = replace (regex "\a"   $ parseFlags "gm") "\\a"  $
+                   replace (regex "\b"   $ parseFlags "gm") "\\b"  $
+                   replace (regex "\f"   $ parseFlags "gm") "\\f"  $
+                   replace (regex "\n"   $ parseFlags "gm") "\\n"  $
+                   replace (regex "\t"   $ parseFlags "gm") "\\t"  $
+                   replace (regex "\r"   $ parseFlags "gm") "\\r"  $
+                   replace (regex "\v"   $ parseFlags "gm") "\\v"  $
+                   replace (regex "\""   $ parseFlags "gm") "\\\"" $
+                   replace (regex "\'"   $ parseFlags "gm") "\\\'" $
+                   replace (regex "\\\\" $ parseFlags "gm") "\\\\" str
+

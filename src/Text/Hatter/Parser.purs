@@ -4,7 +4,8 @@ module Text.Hatter.Parser
        , Attribute(..)
        , HString(..)
        , HExp(..)
-       , Document(..)
+       , Module(..)
+       , Declaration(..)
        , TagName(..)
        , AttributeValue(..)
        , AttributeName(..)
@@ -13,6 +14,7 @@ module Text.Hatter.Parser
 import Data.String
 import Data.Either
 import Data.Tuple
+import Control.Alternative(many)
 
 import Control.Alt
 import Control.Monad.Error(strMsg)
@@ -22,35 +24,51 @@ import Text.Parsing.Parser.Combinators
 import Text.Parsing.Parser.String
 import Prelude
 
-parse :: String -> Either ParseError Document
-parse input = runParser input pDocument
+parse :: String -> Either ParseError Module
+parse input = runParser input pModule
 
-newtype Document = Document
-                   { typeAnnotation :: String
-                   , args :: String
-                   , body :: Node
-                   }
-instance eqDocument :: Eq Document where
-  (==) (Document a) (Document a') =
-    a.typeAnnotation == a'.typeAnnotation &&
-    a.args == a'.args &&
-    a.body == a'.body
+newtype Module = Module [Declaration]
+
+newtype Declaration = Declaration { rawCode :: String
+                                  , body :: Node }
+
+instance eqModule :: Eq Module where
+  (==) (Module a) (Module a') = a == a'
   (/=) a a' = not $ a == a'
 
-foreign import consoleLog "function consoleLog(x) { console.log(x); return x }" :: forall a. a -> a
+instance eqDeclaration :: Eq Declaration where
+  (==) (Declaration a) (Declaration a') = a.rawCode == a'.rawCode && a.body == a'.body
+  (/=) a a' = not $ a == a'
 
-pDocument :: forall m. (Monad m) => ParserT String m Document
-pDocument = do
-  skipSpaces
-  typeAnnotation <- line
-  skipSpaces
-  args <- line
+pModule :: forall m. (Monad m) => ParserT String m Module
+pModule = do
+  skipEmptyLines
+  decs <- many pDeclaration
+  eof
+  return $ Module decs
+
+pIndent  :: forall m. (Monad m) => ParserT String m Unit
+pIndent = unify $ oneOf [" ", "\t"]
+
+skipEmptyLines :: forall m. (Monad m) => ParserT String m Unit
+skipEmptyLines = do
+  skipMany $ try emptyLine
+  where emptyLine = do
+          many pIndent
+          oneOf ["\n", "\r"]
+          return unit
+
+pDeclaration :: forall m. (Monad m) => ParserT String m Declaration
+pDeclaration = do
+  rawCodes <- line `many1Till` lookAhead pIndent
   body <- pNode
-  skipSpaces
-  return $ Document { typeAnnotation: typeAnnotation, args: args, body: body }
+  skipEmptyLines
+  return $ Declaration { rawCode: joinWith "" rawCodes, body: body }
 
 line :: forall m. (Monad m) => ParserT String m String
-line = stringTill $ string "\n"
+line = do
+  l <- stringTill $ string "\n"
+  return $ l ++ "\n"
 
 data Node = ElementNode TagName [Attribute] [Node]
           | TextNode String
@@ -66,16 +84,16 @@ instance eqNode :: Eq Node where
   (/=) a a' = not $ a == a'
 
 pNode :: forall m. (Monad m) => ParserT String m Node
-pNode = skipSpaces >>= \_ -> (try pNodeExp <|> try pElementNode <|> pTextNode)
+pNode = (try pNodeExp <|> try pElementNode <|> pTextNode)
 
 pNodeExp :: forall m. (Functor m, Monad m) => ParserT String m Node -- NodeExp
-pNodeExp = NodeExp <$> pHExp
+pNodeExp = do
+  skipSpaces
+  NodeExp <$> pHExp
 
 pTextNode :: forall m. (Functor m, Monad m) => ParserT String m Node -- TextNod
 pTextNode = do
-  skipSpaces
   s <- stringTill $ lookAhead $ do
-    skipSpaces
     (unify $ string "<") <|> eof
   return $ TextNode $ unescapeHtml s
 
@@ -97,7 +115,6 @@ pRawElement :: forall m. (Monad m) => ParserT String m Node -- ElementNode
 pRawElement = do
   skipSpaces
   Tuple tag attrs <- pStartTagRaw
-  skipSpaces
   children <- pRawTextNode (pEndTag tag) `manyTill` (lookAhead $ pEndTag tag)
   pEndTag tag
   return $ ElementNode tag attrs children
@@ -111,7 +128,6 @@ pEscapableRawElement :: forall m. (Monad m) => ParserT String m Node -- ElementN
 pEscapableRawElement = do
   skipSpaces
   Tuple tag attrs <- pStartTagEscapableRaw
-  skipSpaces
   children <- pRawTextNode (pEndTag tag) `manyTill` (lookAhead $ pEndTag tag)
   pEndTag tag
   return $ ElementNode tag attrs children
@@ -123,14 +139,12 @@ escapableRawElementTags = ["textarea", "title"]
 
 pRawTextNode :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m Node -- TextNod
 pRawTextNode end = do
-  skipSpaces
   RawTextNode <$> pHStrings end
 
 pNormalElement :: forall m. (Monad m) => ParserT String m Node -- ElementNode
 pNormalElement = do
   skipSpaces
   Tuple tag attrs <- pStartTag (pTagName end) false
-  skipSpaces
   children <- pNode `manyTill` (lookAhead $ pEndTag tag)
   pEndTag tag
   return $ ElementNode tag attrs children
@@ -146,7 +160,11 @@ pStartTag pTagName allowSlash = do
   end
   return $ Tuple tag attributes
   where
-    end = if allowSlash then choice $ Data.Array.map string [">", "/>"] else string ">"
+    end = do
+      skipSpaces
+      if allowSlash
+        then choice $ Data.Array.map string [">", "/>"]
+        else string ">"
 
 pEndTag :: forall m. (Monad m) => TagName -> ParserT String m Unit
 pEndTag tag = do
@@ -279,3 +297,10 @@ stringi s = ParserT $ \s' ->
 
 unescapeHtml :: String -> String
 unescapeHtml html = replace "&amp;" "&" $ replace "&lt;" "<" $ replace "&gt;" ">" html
+
+-- foreign import consoleLog "function consoleLog(x) { console.log(x); return x }" :: forall a. a -> a
+-- debug :: forall m. (Monad m) => String -> ParserT String m Unit
+-- debug x = do
+--   xs <- lookAhead $ char `manyTill` eof
+--   let _ = consoleLog $ joinWith "" (x : ":" : xs)
+--   return unit
