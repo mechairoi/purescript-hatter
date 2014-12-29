@@ -43,8 +43,8 @@ XXX WIP
 
 ## Syntax
 
-Top-level (not indented) codes are just PureScript.
-Indented codes are templates like HTML. We can embed PureScript code into templates by `<% code %>`.
+Top-level codes are just PureScript.
+Codes between `[|` and `|]` are templates like HTML. PureScript code can be enbedded into templates by `<% code %>`.
 
 For example,
 
@@ -54,7 +54,7 @@ import VirtualDOM.VTree.Typed
 
 render :: String -> VTree
 render x =
-  <div><% x %></div>
+  [| <div><% x %></div> |]
 ```
 
 is translated into
@@ -75,11 +75,29 @@ import VirtualDOM.VTree.Typed
 
 render :: String -> VTree
 render x =
-  <span><% x %></span>
+  [| <span><% x %></span> |]
 
 render2 :: String -> VTree
 render2 x =
-  <div><% render x %></div>
+  [| <div><% render x %></div> |]
+```
+
+### Nesting templates
+
+XXX Not implemented
+
+```purescript
+module Sample1 where
+import VirtualDOM.VTree.Typed
+
+render :: String -> VTree
+render x = [|
+    <span>
+      <% if x == "foo"
+           then [| <span><% x %></span> |]
+           else [| <div><% x %></div> |] %>
+    </span>
+  |]
 ```
 
 ### Control flow

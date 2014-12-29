@@ -5,7 +5,7 @@ module Text.Hatter.Parser
        , HString(..)
        , HExp(..)
        , Module(..)
-       , Declaration(..)
+       , Code(..)
        , TagName(..)
        , AttributeValue(..)
        , AttributeName(..)
@@ -27,43 +27,49 @@ import Prelude
 parse :: String -> Either ParseError Module
 parse input = runParser input pModule
 
-newtype Module = Module [Declaration]
+newtype Module = Module [Code]
 
-newtype Declaration = Declaration { rawCode :: String
-                                  , body :: Node }
+data Code = RawCode String | Template Node
 
 instance eqModule :: Eq Module where
   (==) (Module a) (Module a') = a == a'
   (/=) a a' = not $ a == a'
 
-instance eqDeclaration :: Eq Declaration where
-  (==) (Declaration a) (Declaration a') = a.rawCode == a'.rawCode && a.body == a'.body
+instance eqCode :: Eq Code where
+  (==) (RawCode a) (RawCode a') = a == a'
+  (==) (Template a) (Template a') = a == a'
+  (==) _ _ = false
   (/=) a a' = not $ a == a'
 
 pModule :: forall m. (Monad m) => ParserT String m Module
 pModule = do
-  skipEmptyLines
-  decs <- many pDeclaration
-  eof
-  return $ Module decs
+  codes <- pCode `manyTill` eof
+  return $ Module codes
 
-pIndent  :: forall m. (Monad m) => ParserT String m Unit
+pIndent :: forall m. (Monad m) => ParserT String m Unit
 pIndent = unify $ oneOf [" ", "\t"]
 
-skipEmptyLines :: forall m. (Monad m) => ParserT String m Unit
-skipEmptyLines = do
-  skipMany $ try emptyLine
-  where emptyLine = do
-          many pIndent
-          oneOf ["\n", "\r"]
-          return unit
+pStartTemplate :: forall m. (Monad m) => ParserT String m Unit
+pStartTemplate = unify $ string "[|"
 
-pDeclaration :: forall m. (Monad m) => ParserT String m Declaration
-pDeclaration = do
-  rawCodes <- line `many1Till` lookAhead pIndent
+pEndTemplate :: forall m. (Monad m) => ParserT String m Unit
+pEndTemplate = unify $ string "|]"
+
+pCode :: forall m. (Monad m) => ParserT String m Code
+pCode = (try pTemplate) <|> pRawCode
+
+pTemplate :: forall m. (Monad m) => ParserT String m Code
+pTemplate = do
+  pStartTemplate
   body <- pNode
-  skipEmptyLines
-  return $ Declaration { rawCode: joinWith "" rawCodes, body: body }
+  skipSpaces
+  pEndTemplate
+  return $ Template body
+
+pRawCode :: forall m. (Monad m) => ParserT String m Code
+pRawCode = do
+  -- _ <- debug "pTemplate: beforepStartTemplate"
+  RawCode <$> (stringTill $ (lookAhead pStartTemplate <|> eof))
 
 line :: forall m. (Monad m) => ParserT String m String
 line = do
@@ -93,8 +99,8 @@ pNodeExp = do
 
 pTextNode :: forall m. (Functor m, Monad m) => ParserT String m Node -- TextNod
 pTextNode = do
-  s <- stringTill $ lookAhead $ do
-    (unify $ string "<") <|> eof
+  s <- stringTill $ do
+    (lookAhead $ unify $ string "<") <|> lookAhead pEndTemplate
   return $ TextNode $ unescapeHtml s
 
 pElementNode :: forall m. (Monad m) => ParserT String m Node -- ElementNode
@@ -288,12 +294,6 @@ someWhiteSpaces = do
   x <- space
   xs <- whiteSpace
   return $ x ++ xs
-
-stringi :: forall a m. (Monad m) => String -> ParserT String m String
-stringi s = ParserT $ \s' ->
-  return $ case toLower $ take (length s) s' of
-    s'' | s'' == toLower s -> { consumed: true, input: drop (length s) s', result: Right s }
-    _ -> { consumed: false, input: s', result: Left (strMsg ("Expected " ++ show s)) }
 
 unescapeHtml :: String -> String
 unescapeHtml html = replace "&amp;" "&" $ replace "&lt;" "<" $ replace "&gt;" ">" html
