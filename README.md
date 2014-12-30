@@ -64,7 +64,7 @@ module Sample1 where
 import VirtualDOM.VTree.Typed
 
 render :: String -> VTree
-render = vnode "div" [] [ vtext x ] Nothing Nothing
+render x = vnode "div" [] [ vtext x ] Nothing Nothing
 ```
 
 ### Embbeding other templates
