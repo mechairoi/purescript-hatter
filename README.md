@@ -100,9 +100,9 @@ render x = [|
   |]
 ```
 
-### Control flow
+### Implcit conversion
 
-XXX WIP
+XXX wip
 
 ## Module Documentation
 
