@@ -47,13 +47,13 @@ pModule = do
   return $ Module codes
 
 pIndent :: forall m. (Monad m) => ParserT String m Unit
-pIndent = unify $ oneOf [" ", "\t"]
+pIndent = void $ oneOf [" ", "\t"]
 
 pStartTemplate :: forall m. (Monad m) => ParserT String m Unit
-pStartTemplate = unify $ string "[|"
+pStartTemplate = void $ string "[|"
 
 pEndTemplate :: forall m. (Monad m) => ParserT String m Unit
-pEndTemplate = unify $ string "|]"
+pEndTemplate = void $ string "|]"
 
 pCode :: forall m. (Monad m) => ParserT String m Code
 pCode = (try pTemplate) <|> pRawCode
@@ -100,7 +100,7 @@ pNodeExp = do
 pTextNode :: forall m. (Functor m, Monad m) => ParserT String m Node -- TextNod
 pTextNode = do
   s <- stringTill $ do
-    (lookAhead $ unify $ string "<") <|> lookAhead pEndTemplate
+    (lookAhead $ void $ string "<") <|> lookAhead pEndTemplate
   return $ TextNode $ unescapeHtml s
 
 pElementNode :: forall m. (Monad m) => ParserT String m Node -- ElementNode
@@ -222,7 +222,7 @@ pAttribute attrsEnd = do
   skipSpaces
   try pAttributesExp <|> try (pAttr end) <|> pToggle end
   where
-    end = (unify $ string " ") <|> (unify attrsEnd)
+    end = (void $ string " ") <|> (void attrsEnd)
 
 pAttributesExp :: forall m. (Functor m, Monad m) => ParserT String m Attribute
 pAttributesExp = AttributesExp <$> pHExp
@@ -276,11 +276,8 @@ instance eqHString :: Eq HString where
   (==) _ _ = false
   (/=) a a' = not $ a == a'
 
-unify :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m Unit
-unify parser = (\_ -> unit) <$> parser
-
 pHStrings :: forall a m. (Monad m) => ParserT String m a -> ParserT String m [HString]
-pHStrings end = (pHString $ lookAhead ((unify $ string "<%") <|> (unify end))) `manyTill` (lookAhead end)
+pHStrings end = (pHString $ lookAhead ((void $ string "<%") <|> (void end))) `manyTill` (lookAhead end)
 
 pHString :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m HString
 pHString end = (StringExp <$> pHExp) <|> (StringLiteral <<< unescapeHtml <$> stringTill (lookAhead end))
