@@ -1,5 +1,6 @@
 module UnitTest.Text.Hatter where
 
+import Prelude
 import Test.QuickCheck
 import Text.Hatter.Parser
 import Control.Monad.Eff
@@ -23,9 +24,9 @@ render x y =
   </div>
 """
 
-testAll :: QC Unit
+testAll :: forall eff. QC eff Unit
 testAll = do
   assert $ isRight $ hatter [] input
 
-assert :: Boolean -> QC Unit
+assert :: forall eff. Boolean -> QC eff Unit
 assert = quickCheck' 1

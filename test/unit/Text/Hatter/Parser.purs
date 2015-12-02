@@ -1,5 +1,6 @@
 module UnitTest.Text.Hatter.Parser where
 
+import Prelude
 import Test.QuickCheck
 import Text.Hatter.Parser
 import Control.Monad.Eff
@@ -7,7 +8,7 @@ import Debug.Trace
 import Data.Either
 import Text.Parsing.Parser
 
-testAll :: QC Unit
+testAll :: forall eff. QC eff Unit
 testAll = do
   testBody "  <div></div>" $ ElementNode "div" [] []
 
@@ -47,9 +48,9 @@ testAll = do
     [ Attr [ StringLiteral "id" ] [ StringLiteral "&><" ] ]
     [ TextNode "&><" ]
 
-testBody :: String -> Node -> QC Unit
+testBody :: forall eff. String -> Node -> QC (|eff) Unit
 testBody input expected = do
-  trace $ "parse node: " ++ input
+  traceAnyM $ "parse node: " ++ input
   assert $ eqRight (parse $ rawCode ++ input) $
     Module [ Declaration { rawCode: rawCode
                          , body: expected } ]
@@ -59,5 +60,5 @@ eqRight :: forall a b. (Eq b) => Either a b -> b -> Boolean
 eqRight (Right x) y = x == y
 eqRight (Left _) _ = false
 
-assert :: Boolean -> QC Unit
+assert :: forall eff. Boolean -> QC eff Unit
 assert = quickCheck' 1

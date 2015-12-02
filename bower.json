@@ -26,5 +26,9 @@
     "purescript-strings": "~0.7.1",
     "purescript-arrays": "~0.4.3",
     "purescript-control": "~0.3.2"
+  },
+  "devDependencies": {
+    "purescript-quickcheck": "~0.12.1",
+    "purescript-debug": "~0.1.2"
   }
 }

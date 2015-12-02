@@ -1,5 +1,6 @@
 module UnitTest where
 
+import Prelude
 import UnitTest.Text.Hatter ()
 import UnitTest.Text.Hatter.Parser ()
 

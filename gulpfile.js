@@ -53,8 +53,11 @@ gulp.task('make', function() {
 });
 
 gulp.task('unit-test-make', function() {
-  return gulp.src([paths.src, paths.unitTest].concat(paths.bowerSrc))
-    .pipe(purescript.pscMake({output: paths.dest}));
+  return purescript.psc({
+    src: [paths.src, paths.unitTest].concat(paths.bowerSrc),
+    ffi: [paths.ffiSrc].concat(paths.bowerFfiSrc),
+    output: paths.dest
+  });
 });
 
 gulp.task('unit-test', ['unit-test-make'], function() {
