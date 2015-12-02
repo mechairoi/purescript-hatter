@@ -10,9 +10,11 @@ var gulp        = require('gulp')
 
 var paths = {
   src: 'src/**/*.purs',
+  ffiSrc: 'src/**/*.js',
   bin: 'Index.purs',
   doc: 'MODULE.md',
   bowerSrc: 'bower_components/purescript-*/src/**/*.purs',
+  bowerFfiSrc: 'bower_components/purescript-*/src/**/*.js',
   dest: 'output/node_modules',
   unitTest: 'test/unit/**/*.purs',
   integrationTest: 'test/integration/**/*.purs',
@@ -43,8 +45,11 @@ function stringSrc(filename, contents) {
 }
 
 gulp.task('make', function() {
-  return gulp.src([paths.src].concat(paths.bowerSrc))
-    .pipe(purescript.pscMake({output: paths.dest}));
+  return purescript.psc({
+    src: [paths.src].concat(paths.bowerSrc),
+    ffi: [paths.ffiSrc].concat(paths.bowerFfiSrc),
+    output: paths.dest
+  });
 });
 
 gulp.task('unit-test-make', function() {

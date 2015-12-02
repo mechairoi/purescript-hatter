@@ -4,6 +4,7 @@ module Text.Hatter.PureScript
        , Name()
        ) where
 
+import Prelude
 import Data.String (joinWith)
 import Data.Array
 import Data.String.Regex
@@ -12,7 +13,7 @@ type Name = String
 
 data Exp = VarE Name
          | AppE Exp Exp
-         | StringLitE String | ArrayLitE [Exp]
+         | StringLitE String | ArrayLitE (Array Exp)
          | RawE String
          | SigE Exp Name
 
@@ -28,7 +29,7 @@ toCode (StringLitE name) = joinWith "" [ "\""
                                        , "\""
                                        ]
 toCode (ArrayLitE exps) =
-   "[" ++ joinWith ", " (Data.Array.map toCode exps) ++ "]"
+   "[" ++ joinWith ", " (map toCode exps) ++ "]"
 
 toCode (RawE rawCode) = joinWith " " [ "("
                                      , rawCode

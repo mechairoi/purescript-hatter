@@ -1,6 +1,7 @@
 module Text.Hatter.Translator
        ( translateNode )where
 
+import Prelude
 import Text.Hatter.Parser
 import Text.Hatter.PureScript
 import Data.String (joinWith)
@@ -15,8 +16,8 @@ translateNode (ElementNode tag attrs children) =
     (AppE
      (AppE
       (AppE (VarE "VirtualDOM.VTree.Typed.vnode") (StringLitE tag))
-      (ArrayLitE $ Data.Array.map translateAttribute attrs))
-     (ArrayLitE $ Data.Array.map translateNode
+      (ArrayLitE $ map translateAttribute attrs))
+     (ArrayLitE $ map translateNode
       children))
     (VarE "Data.Maybe.Nothing"))
    (VarE "Data.Maybe.Nothing"))
@@ -45,13 +46,13 @@ translateAttribute (Toggle name) =
 translateAttribute (AttributesExp (HExp e)) =
   (AppE (VarE "Text.Hatter.Runtime.coerce") (RawE e))
 
-translateHStrings :: [HString] -> Exp
+translateHStrings :: Array HString -> Exp
 translateHStrings xs =
   (AppE
    (AppE
     (VarE "Data.String.joinWith")
     (StringLitE ""))
-   (ArrayLitE $ Data.Array.map translateHString xs))
+   (ArrayLitE $ map translateHString xs))
 
 translateHString :: HString -> Exp
 translateHString (StringLiteral s) = StringLitE s
