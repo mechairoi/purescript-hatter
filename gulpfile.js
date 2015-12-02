@@ -84,10 +84,12 @@ gulp.task('integration-test', ['integration-test-make'], function() {
 
 gulp.task('test', ['unit-test', 'integration-test']);
 
-gulp.task('bin', function() {
-  return gulp.src([paths.src, paths.bin].concat(paths.bowerSrc))
-    .pipe(purescript.psc(options.bin))
-    .pipe(gulp.dest(paths.dest));
+gulp.task('bin', ['make'], function() {
+  return purescript.pscBundle({
+    src: 'output/**/*.js',
+    output: 'index.js',
+    module: 'Text.Hatter'
+  });
 });
 
 gulp.task('docs', function() {
