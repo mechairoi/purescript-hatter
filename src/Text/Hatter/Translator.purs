@@ -1,7 +1,10 @@
 module Text.Hatter.Translator
-       ( translateNode )where
+  ( translateNode
+  , translateNodes
+  )where
 
 import Prelude
+import Control.Bind (join)
 import Text.Hatter.Parser
 import Text.Hatter.PureScript
 import Data.String (joinWith)
@@ -20,14 +23,18 @@ translateNode (ElementNode tag attrs children) =
     (AppE (VarE "C.element")
       (AppE (VarE "C.tagName") (StringLitE tag)))
     (ArrayLitE $ map translateAttribute attrs))
-   (ArrayLitE $ map translateNode
-    children))
+   (AppE (VarE "Contro.Bind.join")  -- >>= id ?
+     (ArrayLitE $ map translateNodes children)))
 
 translateNode (TextNode s) = AppE (VarE "H.text") $ StringLitE s
 
 translateNode (RawTextNode ss) = AppE (VarE "H.text") $ translateHStrings ss
 
 translateNode (NodeExp (HExp e)) = AppE (VarE "UC.coerceToElement") $ RawE e
+
+translateNodes :: Node -> Exp
+translateNodes (NodeExp (HExp e)) = AppE (VarE "UC.coerceToElements") $ RawE e
+translateNodes n = ArrayLitE [translateNode n]
 
 translateAttribute :: Attribute -> Exp
 translateAttribute (Attr name value) =
