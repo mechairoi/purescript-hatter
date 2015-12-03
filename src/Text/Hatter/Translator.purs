@@ -9,42 +9,47 @@ import Data.Either
 
 import Data.Foreign
 
+-- import qualified Halogen.HTML.Core as C
+-- import qualified Halogen.HTML.Indexed as H
+-- import qualified App.Render.UnsafeCoerce as UC
+
 translateNode :: Node -> Exp
 translateNode (ElementNode tag attrs children) =
   (AppE
    (AppE
-    (AppE
-     (AppE
-      (AppE (VarE "VirtualDOM.VTree.Typed.vnode") (StringLitE tag))
-      (ArrayLitE $ map translateAttribute attrs))
-     (ArrayLitE $ map translateNode
-      children))
-    (VarE "Data.Maybe.Nothing"))
-   (VarE "Data.Maybe.Nothing"))
+    (AppE (VarE "C.element")
+      (AppE (VarE "C.tagName") (StringLitE tag)))
+    (ArrayLitE $ map translateAttribute attrs))
+   (ArrayLitE $ map translateNode
+    children))
 
-translateNode (TextNode s) = AppE (VarE "VirtualDOM.VTree.Typed.vtext") $ StringLitE s
+translateNode (TextNode s) = AppE (VarE "H.text") $ StringLitE s
 
-translateNode (RawTextNode ss) = AppE (VarE "VirtualDOM.VTree.Typed.vtext") $ translateHStrings ss
+translateNode (RawTextNode ss) = AppE (VarE "H.text") $ translateHStrings ss
 
-translateNode (NodeExp (HExp e)) = AppE (VarE "Text.Hatter.Runtime.coerce") $ RawE e
+translateNode (NodeExp (HExp e)) = AppE (VarE "UC.coerceToElement") $ RawE e
 
 translateAttribute :: Attribute -> Exp
 translateAttribute (Attr name value) =
   (AppE
-   (AppE
-    (VarE "VirtualDOM.VTree.Typed.attr")
-    (translateHStrings name))
-   (translateHStrings value))
+    (AppE
+      (AppE
+        (VarE "C.prop")
+        (AppE (VarE "C.propName") (translateHStrings name)))
+      (AppE (VarE "C.attrName") (translateHStrings name)))
+    (translateHStrings value))
 
 translateAttribute (Toggle name) =
   (AppE
-   (AppE
-    (VarE "VirtualDOM.VTree.Typed.toggle")
-    (translateHStrings name))
-   (VarE "true"))
+    (AppE
+      (AppE
+        (VarE "C.prop")
+        (AppE (VarE "C.propName") (translateHStrings name)))
+      (AppE (VarE "C.attrName") (translateHStrings name)))
+    (VarE "true"))
 
 translateAttribute (AttributesExp (HExp e)) =
-  (AppE (VarE "Text.Hatter.Runtime.coerce") (RawE e))
+  (AppE (VarE "UC.coerceToProperty") (RawE e))
 
 translateHStrings :: Array HString -> Exp
 translateHStrings xs =
@@ -56,4 +61,4 @@ translateHStrings xs =
 
 translateHString :: HString -> Exp
 translateHString (StringLiteral s) = StringLitE s
-translateHString (StringExp (HExp e)) = AppE (VarE "Text.Hatter.Runtime.coerce") $ RawE e
+translateHString (StringExp (HExp e)) = AppE (VarE "UC.coerceToString") $ RawE e
