@@ -12,9 +12,9 @@ import Data.Either
 
 import Data.Foreign
 
--- import qualified Halogen.HTML.Core as C
 -- import qualified Halogen.HTML.Indexed as H
 -- import qualified App.Render.UnsafeCoerce as UC
+-- import qualified App.Render.HTMLCore as C
 
 translateNode :: Node -> Exp
 translateNode (ElementNode tag attrs children) =
@@ -40,19 +40,15 @@ translateAttribute :: Attribute -> Exp
 translateAttribute (Attr name value) =
   (AppE
     (AppE
-      (AppE
-        (VarE "C.prop")
-        (AppE (VarE "C.propName") (translateHStrings name)))
-      (AppE (VarE "C.attrName") (translateHStrings name)))
+      (VarE "C.prop")
+      (translateHStrings name))
     (translateHStrings value))
 
 translateAttribute (Toggle name) =
   (AppE
     (AppE
-      (AppE
-        (VarE "C.prop")
-        (AppE (VarE "C.propName") (translateHStrings name)))
-      (AppE (VarE "C.attrName") (translateHStrings name)))
+      (VarE "C.prop")
+      (translateHStrings name))
     (VarE "true"))
 
 translateAttribute (AttributesExp (HExp e)) =
