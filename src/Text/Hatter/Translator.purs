@@ -23,7 +23,7 @@ translateNode (ElementNode tag attrs children) =
     (AppE (VarE "C.element")
       (AppE (VarE "C.tagName") (StringLitE tag)))
     (ArrayLitE $ map translateAttribute attrs))
-   (AppE (VarE "Contro.Bind.join")  -- >>= id ?
+   (AppE (VarE "Control.Bind.join")  -- >>= id ?
      (ArrayLitE $ map translateNodes children)))
 
 translateNode (TextNode s) = AppE (VarE "H.text") $ StringLitE s
