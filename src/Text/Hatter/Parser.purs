@@ -235,7 +235,6 @@ type AttributeName = String
 pAttributeName :: forall a m. (Monad m) => ParserT String m a -> ParserT String m AttributeName
 pAttributeName end = unescapeHtml <$> stringTill end
 
-
 type AttributeValue = Array HString
 
 pAttributeValue :: forall a m. (Monad m) => ParserT String m a -> ParserT String m AttributeValue

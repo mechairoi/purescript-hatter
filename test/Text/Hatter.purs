@@ -1,4 +1,4 @@
-module UnitTest.Text.Hatter where
+module Test.Text.Hatter where
 
 import Prelude
 import Test.QuickCheck

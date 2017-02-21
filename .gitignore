@@ -6,3 +6,4 @@
 /.psa*
 npm-debug.log
 /hatter.js
+/test/Fixture/*.purs

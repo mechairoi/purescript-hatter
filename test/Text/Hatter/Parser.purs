@@ -1,4 +1,4 @@
-module UnitTest.Text.Hatter.Parser where
+module Test.Text.Hatter.Parser where
 
 import Prelude
 import Test.QuickCheck
@@ -50,8 +50,8 @@ testAll = do
 
 testBody :: forall eff. String -> Node -> QC (|eff) Unit
 testBody input expected = do
-  traceAnyM $ "parse node: " ++ input
-  assert $ eqRight (parse $ rawCode ++ input) $
+  traceAnyM $ "parse node: " <> input
+  assert $ eqRight (parse $ rawCode <> input) $
     Module [ Declaration { rawCode: rawCode
                          , body: expected } ]
   where rawCode = "module UnitTest.Hatter.Parser.Sample where\nrender :: VTree\nrender =\n"

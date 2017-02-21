@@ -1,4 +1,4 @@
-module Test1 where
+module Test.Fixture.Test1 where
 
 render :: forall props. String -> { z:: String, y:: String | props } -> VirtualDOM.VTree.VTree
 render x y =

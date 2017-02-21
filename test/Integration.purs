@@ -1,13 +1,14 @@
-module IntegrationTest where
+module Integration where
 
 import Test.QuickCheck
 import Control.Monad.Eff
 import Debug.Trace
-import Test1 ()
+
+import Test.Fixture.Test1 as Test1
 
 main = testAll
 
-foreign import consoleLog "function consoleLog(x) { console.log(JSON.stringify(x)); return x }" :: forall a. a -> a
+foreign import consoleLog :: forall a. a -> a
 
 testAll :: QC Unit
 testAll = do
