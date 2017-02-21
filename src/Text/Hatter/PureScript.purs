@@ -8,6 +8,8 @@ import Prelude
 import Data.String (joinWith)
 import Data.Array
 import Data.String.Regex
+import Data.Either (fromRight)
+import Partial.Unsafe (unsafePartial)
 
 type Name = String
 
@@ -29,7 +31,7 @@ toCode (StringLitE name) = joinWith "" [ "\""
                                        , "\""
                                        ]
 toCode (ArrayLitE exps) =
-   "[" ++ joinWith ", " (map toCode exps) ++ "]"
+   "[" <> joinWith ", " (map toCode exps) <> "]"
 
 toCode (RawE rawCode) = joinWith " " [ "("
                                      , rawCode
@@ -42,14 +44,14 @@ toCode (SigE exp signature) = joinWith " " [ "("
                                            , ")" ]
 
 escapeString :: String -> String
-escapeString str = replace (regex "\a"   $ parseFlags "gm") "\\a"  $
-                   replace (regex "\b"   $ parseFlags "gm") "\\b"  $
-                   replace (regex "\f"   $ parseFlags "gm") "\\f"  $
-                   replace (regex "\n"   $ parseFlags "gm") "\\n"  $
-                   replace (regex "\t"   $ parseFlags "gm") "\\t"  $
-                   replace (regex "\r"   $ parseFlags "gm") "\\r"  $
-                   replace (regex "\v"   $ parseFlags "gm") "\\v"  $
-                   replace (regex "\""   $ parseFlags "gm") "\\\"" $
-                   replace (regex "\'"   $ parseFlags "gm") "\\\'" $
-                   replace (regex "\\\\" $ parseFlags "gm") "\\\\" str
+escapeString str = replace (unsafePartial fromRight $ regex "\a"   $ parseFlags "gm") "\\a"  $
+                   replace (unsafePartial fromRight $ regex "\b"   $ parseFlags "gm") "\\b"  $
+                   replace (unsafePartial fromRight $ regex "\f"   $ parseFlags "gm") "\\f"  $
+                   replace (unsafePartial fromRight $ regex "\n"   $ parseFlags "gm") "\\n"  $
+                   replace (unsafePartial fromRight $ regex "\t"   $ parseFlags "gm") "\\t"  $
+                   replace (unsafePartial fromRight $ regex "\r"   $ parseFlags "gm") "\\r"  $
+                   replace (unsafePartial fromRight $ regex "\v"   $ parseFlags "gm") "\\v"  $
+                   replace (unsafePartial fromRight $ regex "\""   $ parseFlags "gm") "\\\"" $
+                   replace (unsafePartial fromRight $ regex "\'"   $ parseFlags "gm") "\\\'" $
+                   replace (unsafePartial fromRight $ regex "\\\\" $ parseFlags "gm") "\\\\" str
 
