@@ -4,14 +4,15 @@
   "description": "A template engine for Purescript and virtual-dom",
   "dependencies": {},
   "devDependencies": {
-    "gulp": "^3.9.0",
-    "gulp-cli": "^1.0.0",
-    "gulp-purescript": "^0.8.0",
-    "gulp-run": "^1.6.11",
-    "gulp-util": "^3.0.7",
-    "run-sequence": "^1.1.5",
-    "through2": "^2.0.0",
-    "virtual-dom": "0.0.23",
-    "vtree": "*"
+    "virtual-dom": "^2.1.1",
+    "jscs": "^2.9.0",
+    "jshint": "^2.9.1",
+    "pulp": "^9.0.1",
+    "rimraf": "^2.5.1"
+  },
+  "scripts": {
+    "postinstall": "bower install",
+    "dist": "pulp browserify --to index.js",
+    "build": "jshint src && jscs src && pulp build && rimraf docs && pulp docs"
   }
 }
