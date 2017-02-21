@@ -1,15 +1,16 @@
-language: haskell
-ghc: 7.8
+language: node_js
+sudo: false
+node_js:
+  - 5
+env:
+  - PATH=$HOME/purescript:$PATH
 install:
-  - cabal install purescript --force-reinstalls
-  - sudo add-apt-repository ppa:chris-lea/node.js -y
-  - sudo apt-get update -q
-  - sudo apt-get install nodejs
+  - TAG=$(wget -q -O - https://github.com/purescript/purescript/releases/latest --server-response --max-redirect 0 2>&1 | sed -n -e 's/.*Location:.*tag\///p')
+  - wget -O $HOME/purescript.tar.gz https://github.com/purescript/purescript/releases/download/$TAG/linux64.tar.gz
+  - tar -xvf $HOME/purescript.tar.gz -C $HOME/
+  - chmod a+x $HOME/purescript
   - npm install -g bower
-notifications:
-  email:
-   - ttsujikawa@gmail.com
-script:
   - npm install
-  - bower install
-  - $(npm bin)/gulp test
+script:
+  - npm run build
+  - npm run test
