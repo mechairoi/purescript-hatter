@@ -220,20 +220,21 @@ pAttributesExp = AttributesExp <$> pHExp
 
 pAttr :: forall a m. (Monad m) => ParserT String m a -> ParserT String m Attribute
 pAttr end = do
-  name <- pHStrings $ string "="
+  name <- pAttributeName $ string "="
   string "="
   value <- pAttributeValue end
   pure $ Attr name value
 
 pToggle :: forall a m. (Monad m) => ParserT String m a -> ParserT String m Attribute -- Toggle
 pToggle end = do
-  name <- pHStrings end
+  name <- pAttributeName end
   pure $ Toggle name
 
-type AttributeName = Array HString
+type AttributeName = String
 
 pAttributeName :: forall a m. (Monad m) => ParserT String m a -> ParserT String m AttributeName
-pAttributeName end = pHStrings end
+pAttributeName end = unescapeHtml <$> stringTill end
+
 
 type AttributeValue = Array HString
 

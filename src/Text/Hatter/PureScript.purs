@@ -8,14 +8,18 @@ import Prelude
 import Data.String (joinWith)
 import Data.Array
 import Data.String.Regex
+import Data.StrMap as M
 import Data.Either (fromRight)
+import Data.Tuple
 import Partial.Unsafe (unsafePartial)
 
 type Name = String
 
 data Exp = VarE Name
          | AppE Exp Exp
-         | StringLitE String | ArrayLitE (Array Exp)
+         | StringLitE String
+         | ArrayLitE (Array Exp)
+         | RecordLitE (M.StrMap Exp)
          | RawE String
          | SigE Exp Name
 
@@ -32,6 +36,10 @@ toCode (StringLitE name) = joinWith "" [ "\""
                                        ]
 toCode (ArrayLitE exps) =
    "[" <> joinWith ", " (map toCode exps) <> "]"
+
+toCode (RecordLitE smap) =
+  "{" <> joinWith ", " (pairToCode <$> M.toUnfoldable smap) <> "}"
+  where pairToCode (Tuple key valueExp) = toCode (StringLitE key) <> ":" <> toCode valueExp
 
 toCode (RawE rawCode) = joinWith " " [ "("
                                      , rawCode
