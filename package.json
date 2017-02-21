@@ -2,7 +2,6 @@
   "name": "purescript-hatter",
   "version": "0.0.1",
   "description": "A template engine for Purescript and virtual-dom",
-  "dependencies": {},
   "devDependencies": {
     "virtual-dom": "^2.1.1",
     "jscs": "^2.9.0",
