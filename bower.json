@@ -14,21 +14,23 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "test",
-    "tests"
+    "output"
   ],
   "dependencies": {
-    "purescript-maps": "~0.5.3",
-    "purescript-foreign": "~0.7.2",
-    "purescript-tuples": "~0.4.0",
-    "purescript-maybe": "~0.3.5",
-    "purescript-parsing": "~0.7.1",
-    "purescript-strings": "~0.7.1",
-    "purescript-arrays": "~0.4.3",
-    "purescript-control": "~0.3.2"
+    "purescript-prelude": "^2.4.0",
+    "purescript-console": "^2.0.0",
+    "purescript-maps": "^2.1.2",
+    "purescript-foreign": "^3.2.0",
+    "purescript-tuples": "^3.1.0",
+    "purescript-maybe": "^2.0.1",
+    "purescript-parsing": "^3.2.1",
+    "purescript-strings": "^2.1.0",
+    "purescript-arrays": "^3.2.1",
+    "purescript-control": "^2.0.0"
   },
   "devDependencies": {
-    "purescript-quickcheck": "~0.12.1",
-    "purescript-debug": "~0.1.2"
+    "purescript-psci-support": "^2.0.0",
+    "purescript-quickcheck": "^3.1.1",
+    "purescript-debug": "^2.0.0"
   }
 }

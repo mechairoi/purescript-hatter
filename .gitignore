@@ -1,8 +1,6 @@
-/bower_components
-/node_modules
-/.psci_modules
-/output
-/hatter.js
-/tmp
-/.psci
-/test/integration/fixture/**/*.purs
+/bower_components/
+/node_modules/
+/.pulp-cache/
+/output/
+/.psc*
+/.psa*
