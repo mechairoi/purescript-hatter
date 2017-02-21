@@ -5,3 +5,4 @@
 /.psc*
 /.psa*
 npm-debug.log
+/hatter.js

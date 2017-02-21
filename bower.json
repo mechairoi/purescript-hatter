@@ -29,6 +29,7 @@
     "purescript-control": "^2.0.0"
   },
   "devDependencies": {
+    "purescript-virtual-dom": "git@github.com:mechairoi/purescript-virtual-dom.git#master",
     "purescript-psci-support": "^2.0.0",
     "purescript-quickcheck": "^3.1.1",
     "purescript-debug": "^2.0.0"

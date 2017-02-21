@@ -10,9 +10,11 @@
     "pulp": "^9.0.1",
     "rimraf": "^2.5.1"
   },
+  "bin": "./index.js",
   "scripts": {
     "postinstall": "bower install",
-    "dist": "pulp browserify --to index.js",
-    "build": "jshint src && jscs src && pulp build && rimraf docs && pulp docs"
+    "build": "jshint src && jscs src && pulp build",
+    "dist": "psc-bundle \"output/*/*.js\" --output hatter.js --module Main --main Main",
+    "test": "npm run dist && rimraf test/Fixture/Test1.purs && node ./index.js < test/Fixture/Test1.hat > test/Fixture/Test1.purs && pulp test"
   }
 }
