@@ -6,6 +6,6 @@ import Test.Text.Hatter.Parser as HP
 import Test.Integration as I
 
 main = do
-  H.testAll
   HP.testAll
+  H.testAll
   I.testAll

@@ -82,7 +82,7 @@ instance eqNode :: Eq Node where
   eq _ _ = false
 
 pNode :: forall m. (Monad m) => ParserT String m Node
-pNode = (try pNodeExp <|> try pElementNode <|> pTextNode)
+pNode = try pNodeExp <|> try pElementNode <|> pTextNode
 
 pNodeExp :: forall m. (Functor m, Monad m) => ParserT String m Node -- NodeExp
 pNodeExp = do
@@ -91,8 +91,7 @@ pNodeExp = do
 
 pTextNode :: forall m. (Functor m, Monad m) => ParserT String m Node -- TextNod
 pTextNode = do
-  s <- stringTill $ lookAhead $ do
-    (void $ string "<") <|> eof
+  s <- stringTill $ lookAhead $ ((void $ string "<") <|> eof)
   pure $ TextNode $ unescapeHtml s
 
 pElementNode :: forall m. (Monad m) => ParserT String m Node -- ElementNode
@@ -104,7 +103,7 @@ pVoidElement = do
   Tuple tag attrs <- pStartTagVoid
   pure $ ElementNode tag attrs []
   where pStartTagVoid = pStartTag (pTagNameOneOf voidElementTags end) true
-        end = someWhiteSpaces <|> (choice $ map string [">", "/>"])
+        end = someWhiteSpaces <|> (lookAhead $ choice $ map string [">", "/>"])
 
 voidElementTags :: Array TagName
 voidElementTags = ["area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "menuitem", "meta", "param", "source", "track", "wbr"]
@@ -113,11 +112,10 @@ pRawElement :: forall m. (Monad m) => ParserT String m Node -- ElementNode
 pRawElement = do
   skipSpaces
   Tuple tag attrs <- pStartTagRaw
-  children <- pRawTextNode (pEndTag tag) `manyTill` (lookAhead $ pEndTag tag)
-  pEndTag tag
+  children <- pRawTextNode (lookAhead $ pEndTag tag) `manyTill` (try $ pEndTag tag)
   pure $ ElementNode tag attrs $ toUnfoldable children
   where pStartTagRaw = pStartTag (pTagNameOneOf rawElementTags end) false
-        end = someWhiteSpaces <|> string ">"
+        end = someWhiteSpaces <|> (lookAhead $ string ">")
 
 rawElementTags :: Array TagName
 rawElementTags = ["script", "style"]
@@ -126,11 +124,10 @@ pEscapableRawElement :: forall m. (Monad m) => ParserT String m Node -- ElementN
 pEscapableRawElement = do
   skipSpaces
   Tuple tag attrs <- pStartTagEscapableRaw
-  children <- pRawTextNode (pEndTag tag) `manyTill` (lookAhead $ pEndTag tag)
-  pEndTag tag
+  children <- pRawTextNode (lookAhead $ pEndTag tag) `manyTill` (try $ pEndTag tag)
   pure $ ElementNode tag attrs $ toUnfoldable children
   where pStartTagEscapableRaw = pStartTag (pTagNameOneOf escapableRawElementTags end) false
-        end = someWhiteSpaces <|> string ">"
+        end = someWhiteSpaces <|> (lookAhead $ string ">")
 
 escapableRawElementTags :: Array TagName
 escapableRawElementTags = ["textarea", "title"]
@@ -143,17 +140,16 @@ pNormalElement :: forall m. (Monad m) => ParserT String m Node -- ElementNode
 pNormalElement = do
   skipSpaces
   Tuple tag attrs <- pStartTag (pTagName end) false
-  children <- pNode `manyTill` (lookAhead $ pEndTag tag)
-  pEndTag tag
+  children <- pNode `manyTill` (try $ pEndTag tag)
   pure $ ElementNode tag attrs $ toUnfoldable children
-  where end = someWhiteSpaces <|> string ">"
+  where end = someWhiteSpaces <|> (lookAhead $ string ">") -- XXX ? "/>"
 
 pStartTag :: forall m. (Monad m) => ParserT String m TagName -> Boolean -> ParserT String m (Tuple TagName (Array Attribute))
 pStartTag pTagName allowSlash = do
   skipSpaces
   string "<"
   tag <- pTagName
-  attributes <- pAttributes end
+  attributes <- pAttributes (lookAhead end)
   skipSpaces
   end
   pure $ Tuple tag attributes
@@ -175,19 +171,17 @@ type TagName = String
 pTagName :: forall a m. (Monad m) => ParserT String m a -> ParserT String m TagName
 pTagName end = do
   skipSpaces
-  stringTill $ lookAhead end
+  stringTill end
 
 pTagNameOneOf :: forall a m. (Monad m) => (Array TagName) -> ParserT String m a -> ParserT String m TagName
 pTagNameOneOf tags end = do
   skipSpaces
   tag <- choice $ map string tags
-  lookAhead end
+  end
   pure tag
 
 pAttributes :: forall a m. (Monad m) => ParserT String m a -> ParserT String m (Array Attribute)
-pAttributes end = do
-  skipSpaces
-  toUnfoldable <$> pAttribute end `manyTill` lookAhead end
+pAttributes end = toUnfoldable <$> pAttribute (lookAhead $ end) `manyTill` (try end)
 
 pAttributesEnd  :: forall m. (Monad m) => ParserT String m Unit
 pAttributesEnd = lookAhead do
@@ -220,8 +214,7 @@ pAttributesExp = AttributesExp <$> pHExp
 
 pAttr :: forall a m. (Monad m) => ParserT String m a -> ParserT String m Attribute
 pAttr end = do
-  name <- pAttributeName $ lookAhead $ string "="
-  string "="
+  name <- pAttributeName $ string "="
   value <- pAttributeValue end
   pure $ Attr name value
 
@@ -238,14 +231,17 @@ pAttributeName end = unescapeHtml <$> stringTill end
 type AttributeValue = Array HString
 
 pAttributeValue :: forall a m. (Monad m) => ParserT String m a -> ParserT String m AttributeValue
-pAttributeValue end = pDoubleQuotedHStrings <|> pSingleQuotedHStrings <|> pHStrings end
+pAttributeValue end =
+  (pDoubleQuotedHStrings >>= (end $> _)) <|>
+  (pSingleQuotedHStrings >>= (end $> _)) <|>
+  pHStrings end
 
 pSingleQuotedHStrings :: forall m. (Monad m) => ParserT String m (Array HString)
-pSingleQuotedHStrings = between sq sq $ pHStrings sq
+pSingleQuotedHStrings = between sq sq $ pHStrings (lookAhead sq)
   where sq = string "'"
 
 pDoubleQuotedHStrings :: forall m. (Monad m) => ParserT String m (Array HString)
-pDoubleQuotedHStrings = between dq dq $ pHStrings dq
+pDoubleQuotedHStrings = between dq dq $ pHStrings (lookAhead dq)
   where dq = string "\""
 
 newtype HExp = HExp String
@@ -266,13 +262,14 @@ instance eqHString :: Eq HString where
   eq _ _ = false
 
 pHStrings :: forall a m. (Monad m) => ParserT String m a -> ParserT String m (Array HString)
-pHStrings end = toUnfoldable <$> (pHString $ lookAhead ((void $ string "<%") <|> (void end))) `manyTill` (lookAhead end)
+pHStrings end = toUnfoldable <$> (pHString $ lookAhead ((void $ string "<%") <|> (void end))) `manyTill` (try end)
 
 pHString :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m HString
-pHString end = (StringExp <$> pHExp) <|> (StringLiteral <<< unescapeHtml <$> stringTill (lookAhead end))
+pHString end = (StringExp <$> pHExp) <|> (StringLiteral <<< unescapeHtml <$> stringTill end)
 
 stringTill :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m String
-stringTill end = (fromCharArray <<< toUnfoldable) <$> (anyChar `manyTill` end)
+stringTill end =
+  (fromCharArray <<< toUnfoldable) <$> (anyChar `manyTill` (try end))
 
 someWhiteSpaces :: forall m. (Functor m, Monad m) => ParserT String m String
 someWhiteSpaces = do
@@ -292,9 +289,10 @@ unescapeHtml html = replace (Pattern "&amp;") (Replacement "&") $
                     replace (Pattern "&lt;")  (Replacement "<") $
                     replace (Pattern "&gt;")  (Replacement ">") html
 
--- foreign import consoleLog "function consoleLog(x) { console.log(x); return x }" :: forall a. a -> a
 -- debug :: forall m. (Monad m) => String -> ParserT String m Unit
 -- debug x = do
 --   xs <- lookAhead $ char `manyTill` eof
 --   let _ = consoleLog $ joinWith "" (x : ":" : xs)
 --   pure unit
+
+foreign import log :: forall a. a -> a

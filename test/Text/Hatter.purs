@@ -26,6 +26,9 @@ render x y =
 
 testAll :: forall eff. QC eff Unit
 testAll = do
+  traceAnyM $ "Test.Text.Hatter: "
+  -- traceAnyM $ "result: "
+  -- traceAnyM $ hatter [] input
   assert $ isRight $ hatter [] input
 
 assert :: forall eff. Boolean -> QC eff Unit
