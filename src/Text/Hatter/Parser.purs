@@ -47,7 +47,7 @@ pModule = do
   pure $ Module decs
 
 pIndent  :: forall m. (Monad m) => ParserT String m Unit
-pIndent = unify $ oneOf [' ', '\t']
+pIndent = void $ oneOf [' ', '\t']
 
 skipEmptyLines :: forall m. (Monad m) => ParserT String m Unit
 skipEmptyLines = do
@@ -92,7 +92,7 @@ pNodeExp = do
 pTextNode :: forall m. (Functor m, Monad m) => ParserT String m Node -- TextNod
 pTextNode = do
   s <- stringTill $ lookAhead $ do
-    (unify $ string "<") <|> eof
+    (void $ string "<") <|> eof
   pure $ TextNode $ unescapeHtml s
 
 pElementNode :: forall m. (Monad m) => ParserT String m Node -- ElementNode
@@ -213,14 +213,14 @@ pAttribute attrsEnd = do
   skipSpaces
   try pAttributesExp <|> try (pAttr end) <|> pToggle end
   where
-    end = (unify $ string " ") <|> (unify attrsEnd)
+    end = (void $ string " ") <|> (void attrsEnd)
 
 pAttributesExp :: forall m. (Functor m, Monad m) => ParserT String m Attribute
 pAttributesExp = AttributesExp <$> pHExp
 
 pAttr :: forall a m. (Monad m) => ParserT String m a -> ParserT String m Attribute
 pAttr end = do
-  name <- pAttributeName $ string "="
+  name <- pAttributeName $ lookAhead $ string "="
   string "="
   value <- pAttributeValue end
   pure $ Attr name value
@@ -238,7 +238,7 @@ pAttributeName end = unescapeHtml <$> stringTill end
 type AttributeValue = Array HString
 
 pAttributeValue :: forall a m. (Monad m) => ParserT String m a -> ParserT String m AttributeValue
-pAttributeValue end = pDoubleQuotedHStrings <|> pSingleQuotedHStrings  <|> pHStrings end
+pAttributeValue end = pDoubleQuotedHStrings <|> pSingleQuotedHStrings <|> pHStrings end
 
 pSingleQuotedHStrings :: forall m. (Monad m) => ParserT String m (Array HString)
 pSingleQuotedHStrings = between sq sq $ pHStrings sq
@@ -265,11 +265,8 @@ instance eqHString :: Eq HString where
   eq (StringExp a) (StringExp a') = a == a'
   eq _ _ = false
 
-unify :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m Unit
-unify parser = (\_ -> unit) <$> parser
-
 pHStrings :: forall a m. (Monad m) => ParserT String m a -> ParserT String m (Array HString)
-pHStrings end = toUnfoldable <$> (pHString $ lookAhead ((unify $ string "<%") <|> (unify end))) `manyTill` (lookAhead end)
+pHStrings end = toUnfoldable <$> (pHString $ lookAhead ((void $ string "<%") <|> (void end))) `manyTill` (lookAhead end)
 
 pHString :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m HString
 pHString end = (StringExp <$> pHExp) <|> (StringLiteral <<< unescapeHtml <$> stringTill (lookAhead end))

@@ -31,26 +31,28 @@ testAll = do
     , NodeExp $ HExp " n " ]
 
   testBody """  <div attr="value"></div>""" $
-    ElementNode "div" [ Attr [ StringLiteral "attr" ] [ StringLiteral "value" ] ] []
+    ElementNode "div" [ Attr "attr" [ StringLiteral "value" ] ] []
 
   testBody """  <div attr=value attr2='value2' <% n %>></div>""" $
-    ElementNode "div" [ Attr [ StringLiteral "attr"  ] [ StringLiteral "value"  ]
-                      , Attr [ StringLiteral "attr2" ] [ StringLiteral "value2" ]
+    ElementNode "div" [ Attr "attr" [ StringLiteral "value"  ]
+                      , Attr "attr2" [ StringLiteral "value2" ]
                       , AttributesExp $ HExp " n "
                       ] []
 
   testBody "  <div <% n %>></div>" $ ElementNode "div" [ AttributesExp $ HExp " n "] []
 
   testBody "  <div id=<% n %>></div>" $ ElementNode "div"
-    [ Attr [ StringLiteral "id" ] [ StringExp $ HExp " n " ] ] []
+    [ Attr "id" [ StringExp $ HExp " n " ] ] []
 
   testBody "  <div id='&amp;&gt;&lt;'>&amp;&gt;&lt;</div>" $ ElementNode "div"
-    [ Attr [ StringLiteral "id" ] [ StringLiteral "&><" ] ]
+    [ Attr "id"[ StringLiteral "&><" ] ]
     [ TextNode "&><" ]
 
 testBody :: forall eff. String -> Node -> QC (|eff) Unit
 testBody input expected = do
   traceAnyM $ "parse node: " <> input
+  -- traceAnyM $ "result: "
+  -- traceAnyM $ (parse $ rawCode <> input)
   assert $ eqRight (parse $ rawCode <> input) $
     Module [ Declaration { rawCode: rawCode
                          , body: expected } ]

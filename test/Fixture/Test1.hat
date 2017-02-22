@@ -1,6 +1,9 @@
 module Test.Fixture.Test1 where
 
-render :: forall props. String -> { z:: String, y:: String | props } -> VirtualDOM.VTree.VTree
+import VirtualDOM.VTree as V
+import Text.Hatter.Runtime as Text.Hatter.Runtime
+
+render :: forall props. String -> { z:: String, y:: String | props } -> V.VTree
 render x y =
   <div>
     <span><% x %> foo</span>
@@ -11,12 +14,12 @@ render x y =
     <input type="hidden" name=bar value='ba<% y.y %>z' />
   </div>
 
-render2 :: String -> VirtualDOM.VTree.VTree
+render2 :: String -> V.VTree
 render2 x =
   <pre>1. First line
 2. Second line
 </pre>
 
-render3 :: String -> VirtualDOM.VTree.VTree
+render3 :: String -> V.VTree
 render3 x =
   <div><% x %></div>
