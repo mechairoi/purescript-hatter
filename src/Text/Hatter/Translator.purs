@@ -15,15 +15,20 @@ translateNode (ElementNode tag attrs children) =
   (AppE
    (AppE
     (AppE (VarE "Text.Hatter.Runtime.vnode") (StringLitE tag))
-    (ArrayLitE $ map translateAttribute attrs))
-   (ArrayLitE $ map translateNode
-    children))
+    (ArrayLitE $ translateAttribute <$> attrs))
+   (AppE (VarE "Text.Hatter.Runtime.fold")
+    (ArrayLitE $ translateNodes <$> children))
+   )
 
 translateNode (TextNode s) = AppE (VarE "Text.Hatter.Runtime.vtext") $ StringLitE s
 
 translateNode (RawTextNode ss) = AppE (VarE "Text.Hatter.Runtime.vtext") $ translateHStrings ss
 
 translateNode (NodeExp (HExp e)) = AppE (VarE "Text.Hatter.Runtime.toVTree") $ RawE e
+
+translateNodes :: Node -> Exp
+translateNodes (NodeExp (HExp e)) = AppE (VarE "Text.Hatter.Runtime.toVTrees") $ RawE e
+translateNodes n = ArrayLitE [ translateNode n ]
 
 translateAttribute :: Attribute -> Exp
 translateAttribute (Attr name value) =
@@ -46,7 +51,7 @@ translateHStrings xs =
    (AppE
     (VarE "Text.Hatter.Runtime.joinWith")
     (StringLitE ""))
-   (ArrayLitE $ map translateHString xs))
+   (ArrayLitE $ translateHString <$> xs))
 
 translateHString :: HString -> Exp
 translateHString (StringLiteral s) = StringLitE s
