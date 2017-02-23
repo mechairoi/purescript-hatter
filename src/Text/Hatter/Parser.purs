@@ -207,7 +207,7 @@ pAttribute attrsEnd = do
   skipSpaces
   try pAttributesExp <|> try (pAttr end) <|> pToggle end
   where
-    end = (void $ string " ") <|> (void attrsEnd)
+    end = (void $ someWhiteSpaces) <|> (void attrsEnd)
 
 pAttributesExp :: forall m. (Functor m, Monad m) => ParserT String m Attribute
 pAttributesExp = AttributesExp <$> pHExp
@@ -232,9 +232,9 @@ type AttributeValue = Array HString
 
 pAttributeValue :: forall a m. (Monad m) => ParserT String m a -> ParserT String m AttributeValue
 pAttributeValue end =
-  (pDoubleQuotedHStrings >>= (end $> _)) <|>
-  (pSingleQuotedHStrings >>= (end $> _)) <|>
-  pHStrings end
+  (try (pDoubleQuotedHStrings >>= (end $> _))) <|>
+  (try (pSingleQuotedHStrings >>= (end $> _))) <|>
+  pHStrings end  -- XXX should not contain quotes
 
 pSingleQuotedHStrings :: forall m. (Monad m) => ParserT String m (Array HString)
 pSingleQuotedHStrings = between sq sq $ pHStrings (lookAhead sq)
@@ -262,7 +262,7 @@ instance eqHString :: Eq HString where
   eq _ _ = false
 
 pHStrings :: forall a m. (Monad m) => ParserT String m a -> ParserT String m (Array HString)
-pHStrings end = toUnfoldable <$> (pHString $ lookAhead ((void $ string "<%") <|> (void end))) `manyTill` (try end)
+pHStrings end = toUnfoldable <$> (pHString $ lookAhead ((try $ void $ string "<%") <|> (void end))) `manyTill` (try end)
 
 pHString :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m HString
 pHString end = (StringExp <$> pHExp) <|> (StringLiteral <<< unescapeHtml <$> stringTill end)

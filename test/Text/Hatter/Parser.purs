@@ -33,6 +33,12 @@ testAll = do
   testBody """  <div attr="value"></div>""" $
     ElementNode "div" [ Attr "attr" [ StringLiteral "value" ] ] []
 
+  testBody """  <button style="position: absolute; bottom: 1rem"
+                        class="fab"></button>""" $
+    ElementNode "button"
+      [ Attr "style" [ StringLiteral "position: absolute; bottom: 1rem" ]
+      , Attr "class" [ StringLiteral "fab"] ] []
+
   testBody """  <div attr=value attr2='value2' <% n %>></div>""" $
     ElementNode "div" [ Attr "attr" [ StringLiteral "value"  ]
                       , Attr "attr2" [ StringLiteral "value2" ]
