@@ -27,13 +27,18 @@ translateNode (NodeExp (HExp e)) = AppE (VarE "Text.Hatter.Runtime.toVTree") $ R
 
 translateAttribute :: Attribute -> Exp
 translateAttribute (Attr name value) =
-  AppE (VarE "Text.Hatter.Runtime.attr") (RecordLitE (M.singleton name (translateHStrings value)))
+  AppE (VarE "Text.Hatter.Runtime.attr") (RecordLitE (M.singleton (translateAttributeName name) (translateHStrings value)))
 
 translateAttribute (Toggle name) =
-  AppE (VarE "Text.Hatter.Runtime.attr") (RecordLitE (M.singleton name (VarE "true")))
+  AppE (VarE "Text.Hatter.Runtime.attr") (RecordLitE (M.singleton (translateAttributeName name) (VarE "true")))
 
 translateAttribute (AttributesExp (HExp e)) =
   AppE (VarE "Text.Hatter.Runtime.attr") (RawE e)
+
+translateAttributeName :: String -> String
+translateAttributeName "class" = "className"
+translateAttributeName "for" = "htmlFor"
+translateAttributeName name = name
 
 translateHStrings :: Array HString -> Exp
 translateHStrings xs =
