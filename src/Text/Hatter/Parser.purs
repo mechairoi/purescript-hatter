@@ -103,7 +103,7 @@ pVoidElement = do
   Tuple tag attrs <- pStartTagVoid
   pure $ ElementNode tag attrs []
   where pStartTagVoid = pStartTag (pTagNameOneOf voidElementTags end) true
-        end = someWhiteSpaces <|> (lookAhead $ choice $ map string [">", "/>"])
+        end = whiteSpace1 <|> (lookAhead $ choice $ map string [">", "/>"])
 
 voidElementTags :: Array TagName
 voidElementTags = ["area", "base", "br", "col", "embed", "hr", "img", "input", "keygen", "link", "menuitem", "meta", "param", "source", "track", "wbr"]
@@ -115,7 +115,7 @@ pRawElement = do
   children <- pRawTextNode (lookAhead $ pEndTag tag) `manyTill` (try $ pEndTag tag)
   pure $ ElementNode tag attrs $ toUnfoldable children
   where pStartTagRaw = pStartTag (pTagNameOneOf rawElementTags end) false
-        end = someWhiteSpaces <|> (lookAhead $ string ">")
+        end = whiteSpace1 <|> (lookAhead $ string ">")
 
 rawElementTags :: Array TagName
 rawElementTags = ["script", "style"]
@@ -127,7 +127,7 @@ pEscapableRawElement = do
   children <- pRawTextNode (lookAhead $ pEndTag tag) `manyTill` (try $ pEndTag tag)
   pure $ ElementNode tag attrs $ toUnfoldable children
   where pStartTagEscapableRaw = pStartTag (pTagNameOneOf escapableRawElementTags end) false
-        end = someWhiteSpaces <|> (lookAhead $ string ">")
+        end = whiteSpace1 <|> (lookAhead $ string ">")
 
 escapableRawElementTags :: Array TagName
 escapableRawElementTags = ["textarea", "title"]
@@ -142,7 +142,7 @@ pNormalElement = do
   Tuple tag attrs <- pStartTag (pTagName end) false
   children <- pNode `manyTill` (try $ pEndTag tag)
   pure $ ElementNode tag attrs $ toUnfoldable children
-  where end = someWhiteSpaces <|> (lookAhead $ string ">") -- XXX ? "/>"
+  where end = whiteSpace1 <|> (lookAhead $ string ">") -- XXX ? "/>"
 
 pStartTag :: forall m. (Monad m) => ParserT String m TagName -> Boolean -> ParserT String m (Tuple TagName (Array Attribute))
 pStartTag pTagName allowSlash = do
@@ -207,7 +207,7 @@ pAttribute attrsEnd = do
   skipSpaces
   try pAttributesExp <|> try (pAttr end) <|> pToggle end
   where
-    end = (void $ someWhiteSpaces) <|> (void attrsEnd)
+    end = (void $ whiteSpace1) <|> (void attrsEnd)
 
 pAttributesExp :: forall m. (Functor m, Monad m) => ParserT String m Attribute
 pAttributesExp = AttributesExp <$> pHExp
@@ -271,8 +271,8 @@ stringTill :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT 
 stringTill end =
   (fromCharArray <<< toUnfoldable) <$> (anyChar `manyTill` (try end))
 
-someWhiteSpaces :: forall m. (Functor m, Monad m) => ParserT String m String
-someWhiteSpaces = do
+whiteSpace1 :: forall m. (Functor m, Monad m) => ParserT String m String
+whiteSpace1 = do
   let space = oneOf ['\n', '\r', ' ', '\t']
   x <- space
   xs <- whiteSpace
