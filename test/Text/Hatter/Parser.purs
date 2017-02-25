@@ -54,7 +54,9 @@ testAll = do
     [ Attr "id"[ StringLiteral "&><" ] ]
     [ TextNode "&><" ]
 
-testBody :: forall eff. String -> Node -> QC (|eff) Unit
+  assertFail "  <div>"
+
+testBody :: forall eff. String -> Node -> QC eff Unit
 testBody input expected = do
   traceAnyM $ "parse node: " <> input
   -- traceAnyM $ "result: "
@@ -62,7 +64,15 @@ testBody input expected = do
   assert $ eqRight (parse $ rawCode <> input) $
     Module [ Declaration { rawCode: rawCode
                          , body: expected } ]
-  where rawCode = "module UnitTest.Hatter.Parser.Sample where\nrender :: VTree\nrender =\n"
+  where rawCode = "module Test.Hatter.Parser.Sample where\nrender :: VTree\nrender =\n"
+
+assertFail :: forall eff. String -> QC eff Unit
+assertFail input = do
+  traceAnyM $ "parse node: " <> input
+  -- traceAnyM $ "result: "
+  -- traceAnyM $ (parse $ rawCode <> input)
+  assert $ isLeft (parse $ rawCode <> input)
+  where rawCode = "module Test.Hatter.Parser.Sample where\nrender :: VTree\nrender =\n"
 
 eqRight :: forall a b. (Eq b) => Either a b -> b -> Boolean
 eqRight (Right x) y = x == y

@@ -91,7 +91,7 @@ pNodeExp = do
 
 pTextNode :: forall m. (Functor m, Monad m) => ParserT String m Node -- TextNod
 pTextNode = do
-  s <- stringTill $ lookAhead $ ((void $ string "<") <|> eof)
+  s <- string1Till $ lookAhead $ ((void $ string "<") <|> eof)
   pure $ TextNode $ unescapeHtml s
 
 pElementNode :: forall m. (Monad m) => ParserT String m Node -- ElementNode
@@ -134,7 +134,7 @@ escapableRawElementTags = ["textarea", "title"]
 
 pRawTextNode :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m Node -- TextNod
 pRawTextNode end = do
-  RawTextNode <$> pHStrings end
+  RawTextNode <$> pHStrings1 end
 
 pNormalElement :: forall m. (Monad m) => ParserT String m Node -- ElementNode
 pNormalElement = do
@@ -171,7 +171,7 @@ type TagName = String
 pTagName :: forall a m. (Monad m) => ParserT String m a -> ParserT String m TagName
 pTagName end = do
   skipSpaces
-  stringTill end
+  string1Till end
 
 pTagNameOneOf :: forall a m. (Monad m) => (Array TagName) -> ParserT String m a -> ParserT String m TagName
 pTagNameOneOf tags end = do
@@ -226,7 +226,7 @@ pToggle end = do
 type AttributeName = String
 
 pAttributeName :: forall a m. (Monad m) => ParserT String m a -> ParserT String m AttributeName
-pAttributeName end = unescapeHtml <$> stringTill end
+pAttributeName end = unescapeHtml <$> string1Till end
 
 type AttributeValue = Array HString
 
@@ -234,14 +234,14 @@ pAttributeValue :: forall a m. (Monad m) => ParserT String m a -> ParserT String
 pAttributeValue end =
   (try (pDoubleQuotedHStrings >>= (end $> _))) <|>
   (try (pSingleQuotedHStrings >>= (end $> _))) <|>
-  pHStrings end  -- XXX should not contain quotes
+  pHStrings1 end  -- XXX should not contain quotes
 
 pSingleQuotedHStrings :: forall m. (Monad m) => ParserT String m (Array HString)
-pSingleQuotedHStrings = between sq sq $ pHStrings (lookAhead sq)
+pSingleQuotedHStrings = between sq sq $ pHStrings1 (lookAhead sq)
   where sq = string "'"
 
 pDoubleQuotedHStrings :: forall m. (Monad m) => ParserT String m (Array HString)
-pDoubleQuotedHStrings = between dq dq $ pHStrings (lookAhead dq)
+pDoubleQuotedHStrings = between dq dq $ pHStrings1 (lookAhead dq)
   where dq = string "\""
 
 newtype HExp = HExp String
@@ -251,7 +251,7 @@ instance eqHExp :: Eq HExp where
 pHExp :: forall m. (Monad m) => ParserT String m HExp
 pHExp = do
   string "<%"
-  body <- stringTill $ string "%>"
+  body <- string1Till $ string "%>"
   pure $ HExp body
 
 data HString = StringLiteral String | StringExp HExp
@@ -261,15 +261,19 @@ instance eqHString :: Eq HString where
   eq (StringExp a) (StringExp a') = a == a'
   eq _ _ = false
 
-pHStrings :: forall a m. (Monad m) => ParserT String m a -> ParserT String m (Array HString)
-pHStrings end = toUnfoldable <$> (pHString $ lookAhead ((try $ void $ string "<%") <|> (void end))) `manyTill` (try end)
+pHStrings1 :: forall a m. (Monad m) => ParserT String m a -> ParserT String m (Array HString)
+pHStrings1 end = toUnfoldable <$> (pHString $ lookAhead ((try $ void $ string "<%") <|> (void end))) `many1Till` (try end)
 
 pHString :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m HString
-pHString end = (StringExp <$> pHExp) <|> (StringLiteral <<< unescapeHtml <$> stringTill end)
+pHString end = (StringExp <$> pHExp) <|> (StringLiteral <<< unescapeHtml <$> string1Till end)
 
 stringTill :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m String
 stringTill end =
   (fromCharArray <<< toUnfoldable) <$> (anyChar `manyTill` (try end))
+
+string1Till :: forall a m. (Functor m, Monad m) => ParserT String m a -> ParserT String m String
+string1Till end =
+  (fromCharArray <<< toUnfoldable) <$> (anyChar `many1Till` (try end))
 
 whiteSpace1 :: forall m. (Functor m, Monad m) => ParserT String m String
 whiteSpace1 = do
