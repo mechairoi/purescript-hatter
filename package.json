@@ -4,10 +4,10 @@
   "description": "A template engine for Purescript and virtual-dom",
   "devDependencies": {
     "virtual-dom": "^2.1.1",
-    "jscs": "^2.9.0",
-    "jshint": "^2.9.1",
-    "pulp": "^9.0.1",
-    "rimraf": "^2.5.1"
+    "eslint": "^3.19.0",
+    "pulp": "^11.0.0",
+    "purescript-psa": "^0.5.1",
+    "rimraf": "^2.6.1"
   },
   "bin": { "hatter": "index.js" },
   "main": "hatter.js",
@@ -16,9 +16,8 @@
     "hatter.js"
   ],
   "scripts": {
-    "postinstall": "bower install",
-    "build": "jshint src && jscs src && pulp build",
-    "dist": "psc-bundle \"output/*/*.js\" --output hatter.js --module Main --main Main",
+    "clean": "rimraf output && rimraf .pulp-cache",
+    "build": "eslint src && pulp build -- --censor-lib --strict && psc-bundle \"output/*/*.js\" --output hatter.js --module Main --main Main",
     "test": "rimraf \"test/Fixture/*.purs\" && ./index.js test/Fixture && pulp test"
   }
 }

@@ -1,14 +1,10 @@
 module Text.Hatter.Translator
        ( translateNode )where
 
-import Prelude
-import Text.Hatter.Parser
-import Text.Hatter.PureScript
-import Data.String (joinWith)
-import Data.Either
+import Prelude (($), (<$>))
+import Text.Hatter.Parser (Attribute(..), HExp(..), HString(..), Node(..))
+import Text.Hatter.PureScript (Exp(..))
 import Data.StrMap as M
-import Data.Tuple
-import Data.Foreign
 
 translateNode :: Node -> Exp
 translateNode (ElementNode tag attrs children) =

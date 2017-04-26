@@ -1,14 +1,15 @@
 module Text.Hatter
        ( hatter ) where
 
-import Prelude
-import Data.Either
+import Prelude (bind, map, pure, ($), (<>))
+import Data.Either (Either)
 import Data.String (joinWith)
 import Text.Parsing.Parser (ParseError())
-import Text.Hatter.PureScript
+import Text.Hatter.PureScript (toCode)
 import Text.Hatter.Translator (translateNode)
-import Text.Hatter.Parser
+import Text.Hatter.Parser (Declaration(..), Module(..), parse)
 
+version :: String
 version = "0.0.1"
 
 hatter :: Array String -> String -> Either ParseError String

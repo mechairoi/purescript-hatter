@@ -1,5 +1,6 @@
 /* global exports, process, console, require */
 "use strict";
+/*eslint no-console: "off"*/ /*XXX*/
 
 var glob = require("glob");
 var path = require("path");
@@ -26,6 +27,7 @@ exports.mainImpl = function (hatter) {
         if (isRight(result)) {
           return result.value0;
         } else {
+          console.log(result.value0);
           throw result.value0;
         }
       };

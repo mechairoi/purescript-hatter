@@ -58,7 +58,7 @@ testAll = do
 
 testBody :: forall eff. String -> Node -> QC eff Unit
 testBody input expected = do
-  traceAnyM $ "parse node: " <> input
+  _ <- traceAnyM $ "parse node: " <> input
   -- traceAnyM $ "result: "
   -- traceAnyM $ (parse $ rawCode <> input)
   assert $ eqRight (parse $ rawCode <> input) $
@@ -68,7 +68,7 @@ testBody input expected = do
 
 assertFail :: forall eff. String -> QC eff Unit
 assertFail input = do
-  traceAnyM $ "parse node: " <> input
+  _ <- traceAnyM $ "parse node: " <> input
   -- traceAnyM $ "result: "
   -- traceAnyM $ (parse $ rawCode <> input)
   assert $ isLeft (parse $ rawCode <> input)
